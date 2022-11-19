@@ -10,15 +10,37 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
+/**
+ * A deserializer for the {@link Train} class.
+ *
+ * @author Logan Kulinski, rashes_lineage02@icloud.com
+ * @version November 19, 2022
+ */
 public final class TrainDeserializer extends StdDeserializer<Train> {
+    /**
+     * Constructs an instance of the {@link TrainDeserializer} class.
+     *
+     * @param clazz the {@link Class} to be used in the operation
+     */
     public TrainDeserializer(Class<?> clazz) {
         super(clazz);
     } //TrainDeserializer
 
+    /**
+     * Constructs an instance of the {@link TrainDeserializer} class.
+     */
     public TrainDeserializer() {
         this(null);
     } //TrainDeserializer
 
+    /**
+     * Returns a {@link Train}'s route using the specified {@link JsonParser} and {@link JsonNode}.
+     *
+     * @param jsonParser the {@link JsonParser} to be used in the operation
+     * @param jsonNode the {@link JsonNode} to be used in the operation
+     * @return a {@link Train}'s route using the specified {@link JsonParser} and {@link JsonNode}
+     * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to a route
+     */
     private String getRoute(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
         JsonNode routeNode = jsonNode.get("rt");
 
@@ -30,6 +52,14 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
         return routeNode.asText();
     } //getRoute
 
+    /**
+     * Returns a {@link Train}'s run using the specified {@link JsonParser} and {@link JsonNode}.
+     *
+     * @param jsonParser the {@link JsonParser} to be used in the operation
+     * @param jsonNode the {@link JsonNode} to be used in the operation
+     * @return a {@link Train}'s run using the specified {@link JsonParser} and {@link JsonNode}
+     * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to a run
+     */
     private int getRun(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
         JsonNode runNode = jsonNode.get("rn");
 
@@ -52,6 +82,14 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
         return run;
     } //getRun
 
+    /**
+     * Returns a {@link Train}'s station using the specified {@link JsonParser} and {@link JsonNode}.
+     *
+     * @param jsonParser the {@link JsonParser} to be used in the operation
+     * @param jsonNode the {@link JsonNode} to be used in the operation
+     * @return a {@link Train}'s station using the specified {@link JsonParser} and {@link JsonNode}
+     * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to a station
+     */
     private String getStation(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
         JsonNode stationNode = jsonNode.get("staNm");
 
@@ -63,6 +101,14 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
         return stationNode.asText();
     } //getStation
 
+    /**
+     * Returns a {@link Train}'s destination using the specified {@link JsonParser} and {@link JsonNode}.
+     *
+     * @param jsonParser the {@link JsonParser} to be used in the operation
+     * @param jsonNode the {@link JsonNode} to be used in the operation
+     * @return a {@link Train}'s destination using the specified {@link JsonParser} and {@link JsonNode}
+     * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to a destination
+     */
     private String getDestination(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
         JsonNode destinationNode = jsonNode.get("destNm");
 
@@ -74,6 +120,14 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
         return destinationNode.asText();
     } //getDestination
 
+    /**
+     * Returns a {@link Train}'s prediction time using the specified {@link JsonParser} and {@link JsonNode}.
+     *
+     * @param jsonParser the {@link JsonParser} to be used in the operation
+     * @param jsonNode the {@link JsonNode} to be used in the operation
+     * @return a {@link Train}'s prediction time using the specified {@link JsonParser} and {@link JsonNode}
+     * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to a prediction time
+     */
     private LocalDateTime getPredictionTime(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
         JsonNode predictionTimeNode = jsonNode.get("prdt");
 
@@ -96,6 +150,14 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
         return predictionTime;
     } //getPredictionTime
 
+    /**
+     * Returns a {@link Train}'s arrival time using the specified {@link JsonParser} and {@link JsonNode}.
+     *
+     * @param jsonParser the {@link JsonParser} to be used in the operation
+     * @param jsonNode the {@link JsonNode} to be used in the operation
+     * @return a {@link Train}'s arrival time using the specified {@link JsonParser} and {@link JsonNode}
+     * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to an arrival time
+     */
     private LocalDateTime getArrivalTime(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
         JsonNode arrivalTimeNode = jsonNode.get("arrT");
 
@@ -118,6 +180,16 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
         return arrivalTime;
     } //getArrivalTime
 
+    /**
+     * Returns a {@link Train} that is deserialized using the specified {@link JsonParser} and
+     * {@link DeserializationContext}.
+     *
+     * @param jsonParser the {@link JsonParser} to be used in the operation
+     * @param deserializationContext the {@link DeserializationContext} to be used in the operation
+     * @return a {@link Train} that is deserialized using the specified {@link JsonParser} and
+     * {@link DeserializationContext}
+     * @throws IOException if an I/O error occurs
+     */
     @Override
     public Train deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         JsonNode rootNode = jsonParser.getCodec()

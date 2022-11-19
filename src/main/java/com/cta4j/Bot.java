@@ -31,9 +31,21 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.concurrent.*;
 
+/**
+ * A Twitter bot used to track the CTA Holiday Train.
+ *
+ * @author Logan Kulinski, rashes_lineage02@icloud.com
+ * @version November 19, 2022
+ */
 public final class Bot {
+    /**
+     * The {@link Logger} of the {@link Bot} class.
+     */
     private static final Logger LOGGER;
 
+    /**
+     * The {@link Properties} of the {@link Bot} class.
+     */
     private static final Properties PROPERTIES;
 
     static {
@@ -44,6 +56,9 @@ public final class Bot {
         Bot.loadProperties();
     } //static
 
+    /**
+     * Loads the properties of this {@link Bot}.
+     */
     private static void loadProperties() {
         String pathString = "src/main/resources/application.properties";
 
@@ -56,6 +71,9 @@ public final class Bot {
         } //end try catch
     } //loadProperties
 
+    /**
+     * Saves the properties of this {@link Bot}.
+     */
     private static void saveProperties() {
         String pathString = "src/main/resources/application.properties";
 
@@ -68,6 +86,11 @@ public final class Bot {
         } //end try catch
     } //saveProperties
 
+    /**
+     * Returns the next {@link Train} associated with the run number that is being tracked.
+     *
+     * @return the next {@link Train} associated with the run number that is being tracked
+     */
     public static Train getNextTrain() {
         String key = Bot.PROPERTIES.getProperty("cta_train_key");
 
@@ -126,6 +149,12 @@ public final class Bot {
         return train;
     } //getTrain
 
+    /**
+     * Returns the tweet text for the specified {@link Train}.
+     *
+     * @param train the {@link Train} to be used in the operation
+     * @return the tweet text for the specified {@link Train}
+     */
     public static String getTweetText(Train train) {
         Objects.requireNonNull(train, "the specified Train is null");
 
@@ -146,6 +175,11 @@ public final class Bot {
         %s-bound %s Run %d will be arriving at %s at %s""".formatted(destination, route, run, station, arrivalTime);
     } //getTweetText
 
+    /**
+     * Returns a random code verifier to be used with Twitter's OAuth process.
+     *
+     * @return a random code verifier to be used with Twitter's OAuth process
+     */
     private static String getCodeVerifier() {
         SecureRandom random = new SecureRandom();
 
@@ -158,6 +192,12 @@ public final class Bot {
                      .encodeToString(codeVerifier);
     } //getCodeVerifier
 
+    /**
+     * Returns a random code challenge using the specified code verifier to be used with Twitter's OAuth process.
+     *
+     * @param codeVerifier the code verifier to be used in the operation
+     * @return a random code challenge using the specified code verifier to be used with Twitter's OAuth process
+     */
     private static String getCodeChallenge(String codeVerifier) {
         MessageDigest messageDigest;
 
@@ -184,6 +224,11 @@ public final class Bot {
                      .encodeToString(digest);
     } //getCodeChallenge
 
+    /**
+     * Returns a random state to be used with Twitter's OAuth process.
+     *
+     * @return a random state to be used with Twitter's OAuth process
+     */
     private static String getState() {
         SecureRandom random = new SecureRandom();
 
@@ -195,6 +240,11 @@ public final class Bot {
                      .encodeToString(state);
     } //getState
 
+    /**
+     * Returns an {@link OAuth2AccessToken} after the user completes Twitter's OAuth flow.
+     *
+     * @return an {@link OAuth2AccessToken} after the user completes Twitter's OAuth flow
+     */
     private static OAuth2AccessToken getAccessToken() {
         String clientId = Bot.PROPERTIES.getProperty("client_id");
 
@@ -251,6 +301,11 @@ public final class Bot {
         return accessToken;
     } //getBearerToken
 
+    /**
+     * Returns a {@link TwitterCredentialsOAuth2} to be used with Twitter's API.
+     *
+     * @return a {@link TwitterCredentialsOAuth2} to be used with Twitter's API
+     */
     private static TwitterCredentialsOAuth2 getCredentials() {
         String clientId = Bot.PROPERTIES.getProperty("client_id");
 
@@ -269,6 +324,12 @@ public final class Bot {
         return new TwitterCredentialsOAuth2(clientId, clientSecret, accessToken, refreshToken, automaticRefresh);
     } //getCredentials
 
+    /**
+     * Creates a tweet using the specified {@link TwitterApi} and text.
+     *
+     * @param twitterApi the {@link TwitterApi} to be used in the operation
+     * @param text the text to be used in the operation
+     */
     private static void createTweet(TwitterApi twitterApi, String text) {
         TweetCreateRequest request = new TweetCreateRequest();
 
@@ -285,6 +346,11 @@ public final class Bot {
         } //end try catch
     } //createTweet
 
+    /**
+     * Runs the {@link Bot} class.
+     *
+     * @param args the command-line arguments
+     */
     public static void main(String[] args) {
         TwitterCredentialsOAuth2 credentials = Bot.getCredentials();
 
