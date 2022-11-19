@@ -333,19 +333,15 @@ public final class Bot {
 
         ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
-        try {
-            ScheduledFuture<?> future = executorService.scheduleAtFixedRate(runnable, initialDelay, period,
-                TimeUnit.MINUTES);
+        ScheduledFuture<?> future = executorService.scheduleAtFixedRate(runnable, initialDelay, period,
+            TimeUnit.MINUTES);
 
-            try {
-                future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                Bot.LOGGER.atError()
-                          .withThrowable(e)
-                          .log();
-            } //end try catch
-        } finally {
-            executorService.close();
-        } //end try finally
+        try {
+            future.get();
+        } catch (InterruptedException | ExecutionException e) {
+            Bot.LOGGER.atError()
+                      .withThrowable(e)
+                      .log();
+        } //end try catch
     } //main
 }
