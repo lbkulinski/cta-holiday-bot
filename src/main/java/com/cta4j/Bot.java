@@ -331,7 +331,9 @@ public final class Bot {
 
         long period = 5L;
 
-        try (ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor()) {
+        ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+
+        try {
             ScheduledFuture<?> future = executorService.scheduleAtFixedRate(runnable, initialDelay, period,
                 TimeUnit.MINUTES);
 
@@ -342,6 +344,8 @@ public final class Bot {
                           .withThrowable(e)
                           .log();
             } //end try catch
-        } //end try catch
+        } finally {
+            executorService.close();
+        } //end try finally
     } //main
 }
