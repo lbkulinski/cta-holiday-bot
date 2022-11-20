@@ -1,4 +1,4 @@
-name: Coffee4j PR CI
+name: CTA Holiday Bot PR CI
 on:
   pull_request_target:
     branches: [ "main" ]
