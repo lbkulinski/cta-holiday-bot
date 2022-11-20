@@ -1,2 +1,2 @@
 # cta-holiday-bot
-A bot used to track the [CTA Holiday Train](https://www.transitchicago.com/holidayfleet/)
+A [Twitter bot](https://twitter.com/cta4j) used to track the [CTA Holiday Train](https://www.transitchicago.com/holidayfleet/)
