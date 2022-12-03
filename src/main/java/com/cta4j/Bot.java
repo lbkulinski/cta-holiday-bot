@@ -35,7 +35,6 @@ import java.util.concurrent.*;
  * A Twitter bot used to track the CTA Holiday Train.
  *
  * @author Logan Kulinski, rashes_lineage02@icloud.com
- * @version November 19, 2022
  */
 public final class Bot {
     /**
@@ -92,21 +91,13 @@ public final class Bot {
      * @return the next {@link Train} associated with the run number that is being tracked
      */
     public static Train getNextTrain() {
-        String key = Bot.PROPERTIES.getProperty("cta_train_key");
-
-        if (key == null) {
-            return null;
-        } //end if
-
         String run = Bot.PROPERTIES.getProperty("cta_train_run");
 
         if (run == null) {
             return null;
         } //end if
 
-        String uriString = """
-        https://lapi.transitchicago.com/api/1.0/ttfollow.aspx\
-        ?key=%s&runnumber=%s&outputType=JSON""".formatted(key, run);
+        String uriString = "https://cta4j.com/api/follow?run=%s".formatted(run);
 
         URI uri = URI.create(uriString);
 

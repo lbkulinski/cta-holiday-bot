@@ -14,7 +14,6 @@ import java.time.format.DateTimeParseException;
  * A deserializer for the {@link Train} class.
  *
  * @author Logan Kulinski, rashes_lineage02@icloud.com
- * @version November 19, 2022
  */
 public final class TrainDeserializer extends StdDeserializer<Train> {
     /**
@@ -42,11 +41,11 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
      * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to a route
      */
     private String getRoute(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
-        JsonNode routeNode = jsonNode.get("rt");
+        JsonNode routeNode = jsonNode.get("route");
 
         if ((routeNode == null) || !routeNode.isTextual()) {
             throw new JsonMappingException(jsonParser,
-                "the field \"rt\" does not exist or is not a string in the specified content");
+                "the field \"route\" does not exist or is not a string in the specified content");
         } //end if
 
         return routeNode.asText();
@@ -61,11 +60,11 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
      * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to a run
      */
     private int getRun(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
-        JsonNode runNode = jsonNode.get("rn");
+        JsonNode runNode = jsonNode.get("run");
 
         if ((runNode == null) || !runNode.isTextual()) {
             throw new JsonMappingException(jsonParser,
-                "the field \"rt\" does not exist or is not a string in the specified content");
+                "the field \"run\" does not exist or is not a string in the specified content");
         } //end if
 
         String runString = runNode.asText();
@@ -76,7 +75,7 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
             run = Integer.parseInt(runString);
         } catch (NumberFormatException e) {
             throw new JsonMappingException(jsonParser,
-                "the field \"rt\" in the specified content is not a valid int", e);
+                "the field \"run\" in the specified content is not a valid int", e);
         } //end try catch
 
         return run;
@@ -91,11 +90,11 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
      * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to a station
      */
     private String getStation(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
-        JsonNode stationNode = jsonNode.get("staNm");
+        JsonNode stationNode = jsonNode.get("station");
 
         if ((stationNode == null) || !stationNode.isTextual()) {
             throw new JsonMappingException(jsonParser,
-                "the field \"staNm\" does not exist or is not a string in the specified content");
+                "the field \"station\" does not exist or is not a string in the specified content");
         } //end if
 
         return stationNode.asText();
@@ -110,11 +109,11 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
      * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to a destination
      */
     private String getDestination(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
-        JsonNode destinationNode = jsonNode.get("destNm");
+        JsonNode destinationNode = jsonNode.get("destination");
 
         if ((destinationNode == null) || !destinationNode.isTextual()) {
             throw new JsonMappingException(jsonParser,
-                "the field \"destNm\" does not exist or is not a string in the specified content");
+                "the field \"destination\" does not exist or is not a string in the specified content");
         } //end if
 
         return destinationNode.asText();
@@ -129,11 +128,11 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
      * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to a prediction time
      */
     private LocalDateTime getPredictionTime(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
-        JsonNode predictionTimeNode = jsonNode.get("prdt");
+        JsonNode predictionTimeNode = jsonNode.get("predictionTime");
 
         if ((predictionTimeNode == null) || !predictionTimeNode.isTextual()) {
             throw new JsonMappingException(jsonParser,
-                "the field \"prdt\" does not exist or is not a string in the specified content");
+                "the field \"predictionTime\" does not exist or is not a string in the specified content");
         } //end if
 
         String predictionTimeString = predictionTimeNode.asText();
@@ -144,7 +143,7 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
             predictionTime = LocalDateTime.parse(predictionTimeString);
         } catch (DateTimeParseException e) {
             throw new JsonMappingException(jsonParser,
-                "the field \"prdt\" in the specified content is not a valid date", e);
+                "the field \"predictionTime\" in the specified content is not a valid date", e);
         } //end try catch
 
         return predictionTime;
@@ -159,11 +158,11 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
      * @throws JsonMappingException if the specified {@link JsonNode} cannot be mapped to an arrival time
      */
     private LocalDateTime getArrivalTime(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
-        JsonNode arrivalTimeNode = jsonNode.get("arrT");
+        JsonNode arrivalTimeNode = jsonNode.get("arrivalTime");
 
         if ((arrivalTimeNode == null) || !arrivalTimeNode.isTextual()) {
             throw new JsonMappingException(jsonParser,
-                "the field \"arrT\" does not exist or is not a string in the specified content");
+                "the field \"arrivalTime\" does not exist or is not a string in the specified content");
         } //end if
 
         String arrivalTimeString = arrivalTimeNode.asText();
@@ -174,7 +173,7 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
             arrivalTime = LocalDateTime.parse(arrivalTimeString);
         } catch (DateTimeParseException e) {
             throw new JsonMappingException(jsonParser,
-                "the field \"arrT\" in the specified content is not a valid date", e);
+                "the field \"arrivalTime\" in the specified content is not a valid date", e);
         } //end try catch
 
         return arrivalTime;
@@ -195,38 +194,38 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
         JsonNode rootNode = jsonParser.getCodec()
                                       .readTree(jsonParser);
 
-        JsonNode ctattNode = rootNode.get("ctatt");
+        JsonNode contentNode = rootNode.get("content");
 
-        if ((ctattNode == null) || !ctattNode.isObject()) {
+        if ((contentNode == null) || !contentNode.isObject()) {
             throw new JsonMappingException(jsonParser,
-                "the field \"ctatt\" does not exist or is not an object in the specified content");
+                "the field \"content\" does not exist or is not an object in the specified content");
         } //end if
 
-        JsonNode etasNode = ctattNode.get("eta");
+        JsonNode trainsNode = contentNode.get("trains");
 
-        if ((etasNode == null) || !etasNode.isArray()) {
+        if ((trainsNode == null) || !trainsNode.isArray()) {
             throw new JsonMappingException(jsonParser,
-                "the field \"eta\" does not exist or is not an array in the specified content");
+                "the field \"trains\" does not exist or is not an array in the specified content");
         } //end if
 
-        if (etasNode.isEmpty()) {
+        if (trainsNode.isEmpty()) {
             throw new JsonMappingException(jsonParser,
-                "the field \"eta\" does not contain any elements in the specified content");
+                "the field \"trains\" does not contain any elements in the specified content");
         } //end if
 
-        JsonNode etaNode = etasNode.get(0);
+        JsonNode trainNode = trainsNode.get(0);
 
-        String route = this.getRoute(jsonParser, etaNode);
+        String route = this.getRoute(jsonParser, trainNode);
 
-        int run = this.getRun(jsonParser, etaNode);
+        int run = this.getRun(jsonParser, trainNode);
 
-        String station = this.getStation(jsonParser, etaNode);
+        String station = this.getStation(jsonParser, trainNode);
 
-        String destination = this.getDestination(jsonParser, etaNode);
+        String destination = this.getDestination(jsonParser, trainNode);
 
-        LocalDateTime predictionTime = this.getPredictionTime(jsonParser, etaNode);
+        LocalDateTime predictionTime = this.getPredictionTime(jsonParser, trainNode);
 
-        LocalDateTime arrivalTime = this.getArrivalTime(jsonParser, etaNode);
+        LocalDateTime arrivalTime = this.getArrivalTime(jsonParser, trainNode);
 
         return new Train(route, run, station, destination, predictionTime, arrivalTime);
     } //deserialize

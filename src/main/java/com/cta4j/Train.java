@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
  * A train of the Chicago Transit Authority.
  *
  * @author Logan Kulinski, rashes_lineage02@icloud.com
- * @version November 19, 2022
  * @param route the route of this {@link Train}
  * @param run the run of this {@link Train}
  * @param station the station of this {@link Train}
