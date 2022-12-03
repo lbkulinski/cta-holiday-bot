@@ -62,21 +62,12 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
     private int getRun(JsonParser jsonParser, JsonNode jsonNode) throws JsonMappingException {
         JsonNode runNode = jsonNode.get("run");
 
-        if ((runNode == null) || !runNode.isTextual()) {
+        if ((runNode == null) || !runNode.isInt()) {
             throw new JsonMappingException(jsonParser,
-                "the field \"run\" does not exist or is not a string in the specified content");
+                "the field \"run\" does not exist or is not an int in the specified content");
         } //end if
 
-        String runString = runNode.asText();
-
-        int run;
-
-        try {
-            run = Integer.parseInt(runString);
-        } catch (NumberFormatException e) {
-            throw new JsonMappingException(jsonParser,
-                "the field \"run\" in the specified content is not a valid int", e);
-        } //end try catch
+        int run = runNode.asInt();
 
         return run;
     } //getRun
