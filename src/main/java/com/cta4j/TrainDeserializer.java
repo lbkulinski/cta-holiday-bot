@@ -48,7 +48,20 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
                 "the field \"route\" does not exist or is not a string in the specified content");
         } //end if
 
-        return routeNode.asText();
+        String route = routeNode.asText();
+
+        return switch (route) {
+            case "RED" -> "Red Line";
+            case "BLUE" -> "Blue Line";
+            case "BROWN" -> "Brown Line";
+            case "GREEN" -> "Green Line";
+            case "ORANGE" -> "Orange Line";
+            case "PURPLE" -> "Purple Line";
+            case "PINK" -> "Pink Line";
+            case "YELLOW" -> "Yellow Line";
+            default -> throw new JsonMappingException(jsonParser,
+                "the field \"route\" is malformed in the specified content");
+        };
     } //getRoute
 
     /**
@@ -67,9 +80,7 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
                 "the field \"run\" does not exist or is not an int in the specified content");
         } //end if
 
-        int run = runNode.asInt();
-
-        return run;
+        return runNode.asInt();
     } //getRun
 
     /**
