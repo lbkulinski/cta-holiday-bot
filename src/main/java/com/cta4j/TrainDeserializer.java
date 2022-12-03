@@ -50,11 +50,18 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
 
         String route = routeNode.asText();
 
-        String transformedRoute = route.toLowerCase();
-
-        transformedRoute += " Line";
-
-        return transformedRoute;
+        return switch (route) {
+            case "RED" -> "Red Line";
+            case "BLUE" -> "Blue Line";
+            case "BROWN" -> "Brown Line";
+            case "GREEN" -> "Green Line";
+            case "ORANGE" -> "Orange Line";
+            case "PURPLE" -> "Purple Line";
+            case "PINK" -> "Pink Line";
+            case "YELLOW" -> "Yellow Line";
+            default -> throw new JsonMappingException(jsonParser,
+                "the field \"route\" is malformed in the specified content");
+        };
     } //getRoute
 
     /**
