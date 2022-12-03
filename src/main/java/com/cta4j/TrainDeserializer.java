@@ -48,7 +48,13 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
                 "the field \"route\" does not exist or is not a string in the specified content");
         } //end if
 
-        return routeNode.asText();
+        String route = routeNode.asText();
+
+        String transformedRoute = route.toLowerCase();
+
+        transformedRoute += " Line";
+
+        return transformedRoute;
     } //getRoute
 
     /**
@@ -67,9 +73,7 @@ public final class TrainDeserializer extends StdDeserializer<Train> {
                 "the field \"run\" does not exist or is not an int in the specified content");
         } //end if
 
-        int run = runNode.asInt();
-
-        return run;
+        return runNode.asInt();
     } //getRun
 
     /**
