@@ -189,6 +189,6 @@ public final class TweetService {
             throw new TwitterException(message);
         }
 
-        return response.body.data;
+        return retryResponse.body.data;
     }
 }

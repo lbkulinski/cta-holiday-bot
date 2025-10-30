@@ -175,6 +175,6 @@ public final class MediaService {
             throw new TwitterException(message);
         }
 
-        return response.body.data;
+        return retryResponse.body.data;
     }
 }
