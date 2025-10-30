@@ -3,13 +3,16 @@ package com.cta4j.twitter.service;
 import com.cta4j.dto.Secret;
 import com.cta4j.exception.TwitterServiceException;
 import com.cta4j.service.SecretService;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.net.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +24,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 
 @Service
 public final class TokenRefreshService {
@@ -70,9 +75,13 @@ public final class TokenRefreshService {
 
         String clientId = secret.clientId();
 
+        String encodedClientId = URLEncoder.encode(clientId, StandardCharsets.UTF_8);
+
         String clientSecret = secret.clientSecret();
 
-        String credentials = String.format("%s:%s", clientId, clientSecret);
+        String encodedClientSecret = URLEncoder.encode(clientSecret, StandardCharsets.UTF_8);
+
+        String credentials = String.format("%s:%s", encodedClientId, encodedClientSecret);
 
         byte[] bytes = credentials.getBytes(StandardCharsets.UTF_8);
 
@@ -82,14 +91,14 @@ public final class TokenRefreshService {
         return String.format("Basic %s", encodedCredentials);
     }
 
-    private StringEntity buildStringEntity(String refreshToken) {
-        String encodedToken = URLEncoder.encode(refreshToken, StandardCharsets.UTF_8);
+    private UrlEncodedFormEntity buildEntity(String refreshToken) {
+        List<NameValuePair> params = new ArrayList<>();
 
-        String requestBody = String.format("grant_type=refresh_token&refresh_token=%s", encodedToken);
+        params.add(new BasicNameValuePair("grant_type", "refresh_token"));
 
-        ContentType contentType = ContentType.APPLICATION_FORM_URLENCODED.withCharset(StandardCharsets.UTF_8);
+        params.add(new BasicNameValuePair("refresh_token", refreshToken));
 
-        return new StringEntity(requestBody, contentType);
+        return new UrlEncodedFormEntity(params, StandardCharsets.UTF_8);
     }
 
     private HttpPost buildRequest(String refreshToken) {
@@ -103,14 +112,22 @@ public final class TokenRefreshService {
 
         httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON);
 
-        StringEntity stringEntity = this.buildStringEntity(refreshToken);
+        UrlEncodedFormEntity entity = this.buildEntity(refreshToken);
 
-        httpPost.setEntity(stringEntity);
+        httpPost.setEntity(entity);
 
         return httpPost;
     }
 
-    private record Response(String accessToken, String refreshToken) {}
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record Response(
+        @JsonAlias("access_token")
+        String accessToken,
+
+        @JsonAlias("refresh_token")
+        String refreshToken
+    ) {
+    }
 
     private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
@@ -138,7 +155,7 @@ public final class TokenRefreshService {
         return response;
     }
 
-    public String refreshAccessToken() {
+    public void refreshAccessToken() {
         String refreshToken = this.secretService.getSecret()
                                                 .twitter()
                                                 .refreshToken();
@@ -163,6 +180,5 @@ public final class TokenRefreshService {
 
         this.secretService.setTwitterTokens(response.accessToken,  response.refreshToken);
 
-        return response.accessToken;
     }
 }

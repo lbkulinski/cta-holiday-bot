@@ -72,7 +72,12 @@ public final class SecretService {
         String clientSecret = this.secret.twitter()
                                          .clientSecret();
 
-        var twitterSecret = new Secret.TwitterSecret(accessToken, refreshToken, clientId, clientSecret);
+        Secret.TwitterSecret twitterSecret = new Secret.TwitterSecret(
+            clientId,
+            clientSecret,
+            accessToken,
+            refreshToken
+        );
 
         this.secret = new Secret(twitterSecret);
 
