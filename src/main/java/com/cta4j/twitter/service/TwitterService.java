@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -76,9 +78,12 @@ public final class TwitterService {
     }
 
     private StringEntity buildStringEntity(String text) {
+        Map<String, String> requestMap = Collections.singletonMap("text", text);
+
         String requestBody;
+
         try {
-            requestBody = objectMapper.writeValueAsString(java.util.Collections.singletonMap("text", text));
+            requestBody = this.objectMapper.writeValueAsString(requestMap);
         } catch (JsonProcessingException e) {
             throw new TwitterServiceException("Failed to serialize tweet text to JSON", e);
         }

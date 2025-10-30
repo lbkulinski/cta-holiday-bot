@@ -78,6 +78,7 @@ public final class TokenRefreshService {
         String clientSecret = secret.getClientSecret();
 
         String credentials = String.format("%s:%s", clientId, clientSecret);
+
         byte[] bytes = credentials.getBytes(StandardCharsets.UTF_8);
 
         String encodedCredentials = Base64.getEncoder()
