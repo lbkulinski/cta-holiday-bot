@@ -1,12 +1,18 @@
 package com.cta4j.dto;
 
-public record Secret(
-    TwitterSecret twitter
-) {
-    public record TwitterSecret(
-        String clientId,
-        String clientSecret,
-        String accessToken,
-        String refreshToken
-    ) {}
+import lombok.Data;
+
+public record Secret(TwitterSecret twitter, BlueskySecret bluesky) {
+    @Data
+    public static final class TwitterSecret {
+        private String clientId;
+        private String clientSecret;
+        private String accessToken;
+        private String refreshToken;
+    }
+
+    @Data
+    public static final class BlueskySecret {
+        private String appPassword;
+    }
 }

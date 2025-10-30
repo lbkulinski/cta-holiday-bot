@@ -19,7 +19,7 @@ public class TweetRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        tokenRefreshService.refreshAccessToken();
+        this.tokenRefreshService.refreshAccessToken();
 
         this.twitterService.postTweet("Testing... Getting ready for Holiday Train 2025!");
     }

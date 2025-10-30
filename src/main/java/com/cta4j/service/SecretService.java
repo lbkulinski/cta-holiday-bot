@@ -3,6 +3,7 @@ package com.cta4j.service;
 import com.cta4j.dto.Secret;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,8 @@ public final class SecretService {
 
     private final String secretId;
 
-    private Secret secret;
+    @Getter
+    private final Secret secret;
 
     @Autowired
     public SecretService(
@@ -57,29 +59,16 @@ public final class SecretService {
         return secret;
     }
 
-    public Secret getSecret() {
-        return this.secret;
-    }
-
     public void setTwitterTokens(String accessToken, String refreshToken) {
         Objects.requireNonNull(accessToken);
 
         Objects.requireNonNull(refreshToken);
 
-        String clientId = this.secret.twitter()
-                                     .clientId();
+        Secret.TwitterSecret twitterSecret = this.secret.twitter();
 
-        String clientSecret = this.secret.twitter()
-                                         .clientSecret();
+        twitterSecret.setAccessToken(accessToken);
 
-        Secret.TwitterSecret twitterSecret = new Secret.TwitterSecret(
-            clientId,
-            clientSecret,
-            accessToken,
-            refreshToken
-        );
-
-        this.secret = new Secret(twitterSecret);
+        twitterSecret.setRefreshToken(refreshToken);
 
         String secretString;
 

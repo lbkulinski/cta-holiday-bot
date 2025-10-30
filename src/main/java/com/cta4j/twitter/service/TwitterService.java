@@ -70,7 +70,7 @@ public final class TwitterService {
     private String buildAuthorizationHeader() {
         String accessToken = this.secretService.getSecret()
                                                .twitter()
-                                               .accessToken();
+                                               .getAccessToken();
 
         return String.format("Bearer %s", accessToken);
     }

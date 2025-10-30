@@ -73,11 +73,11 @@ public final class TokenRefreshService {
         Secret.TwitterSecret secret = this.secretService.getSecret()
                                                         .twitter();
 
-        String clientId = secret.clientId();
+        String clientId = secret.getClientId();
 
         String encodedClientId = URLEncoder.encode(clientId, StandardCharsets.UTF_8);
 
-        String clientSecret = secret.clientSecret();
+        String clientSecret = secret.getClientSecret();
 
         String encodedClientSecret = URLEncoder.encode(clientSecret, StandardCharsets.UTF_8);
 
@@ -158,7 +158,7 @@ public final class TokenRefreshService {
     public void refreshAccessToken() {
         String refreshToken = this.secretService.getSecret()
                                                 .twitter()
-                                                .refreshToken();
+                                                .getRefreshToken();
 
         HttpPost httpPost = this.buildRequest(refreshToken);
 
@@ -179,6 +179,5 @@ public final class TokenRefreshService {
         }
 
         this.secretService.setTwitterTokens(response.accessToken,  response.refreshToken);
-
     }
 }
