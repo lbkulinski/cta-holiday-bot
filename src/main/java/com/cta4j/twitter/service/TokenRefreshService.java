@@ -142,7 +142,7 @@ public final class TokenRefreshService {
         try {
             response = this.objectMapper.readValue(responseBody, Response.class);
         } catch (JsonProcessingException e) {
-            String message = "Failed to parse create tweet response";
+            String message = "Failed to parse token refresh response";
 
             throw new TwitterServiceException(message, e);
         }
