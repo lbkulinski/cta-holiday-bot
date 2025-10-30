@@ -76,8 +76,12 @@ public final class TwitterService {
     }
 
     private StringEntity buildStringEntity(String text) {
-        String requestBody = String.format("""
-        {"text":"%s"}""", text);
+        String requestBody;
+        try {
+            requestBody = objectMapper.writeValueAsString(java.util.Collections.singletonMap("text", text));
+        } catch (JsonProcessingException e) {
+            throw new TwitterServiceException("Failed to serialize tweet text to JSON", e);
+        }
 
         ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
 
