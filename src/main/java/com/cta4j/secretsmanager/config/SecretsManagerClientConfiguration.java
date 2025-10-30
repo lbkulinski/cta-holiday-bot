@@ -1,4 +1,4 @@
-package com.cta4j.config;
+package com.cta4j.secretsmanager.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,6 +1,6 @@
-package com.cta4j.service;
+package com.cta4j.secretsmanager.service;
 
-import com.cta4j.dto.Secret;
+import com.cta4j.secretsmanager.dto.Secret;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;

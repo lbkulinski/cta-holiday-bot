@@ -11,6 +11,8 @@
     <logger name="io.netty" level="WARN" />
     <logger name="com.amazon" level="WARN" />
 
+<!--    <logger name="org.apache.hc.client5.http" level="debug"/>-->
+
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
     </root>

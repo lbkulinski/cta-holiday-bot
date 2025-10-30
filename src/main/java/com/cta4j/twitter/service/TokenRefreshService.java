@@ -1,8 +1,8 @@
 package com.cta4j.twitter.service;
 
-import com.cta4j.dto.Secret;
-import com.cta4j.exception.TwitterServiceException;
-import com.cta4j.service.SecretService;
+import com.cta4j.secretsmanager.dto.Secret;
+import com.cta4j.twitter.exception.TwitterException;
+import com.cta4j.secretsmanager.service.SecretService;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -63,7 +62,7 @@ public final class TokenRefreshService {
         } catch (URISyntaxException e) {
             String message = "Failed to build URI for token refresh endpoint";
 
-            throw new TwitterServiceException(message, e);
+            throw new TwitterException(message, e);
         }
 
         return uri;
@@ -122,14 +121,15 @@ public final class TokenRefreshService {
 
         @JsonAlias("refresh_token")
         String refreshToken
-    ) {
-    }
+    ) {}
 
     private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
 
         if (statusCode != HttpStatus.SC_OK) {
             log.info("HTTP status code {}, reason {}", statusCode, httpResponse.getReasonPhrase());
+
+            log.info("Response body: {}", EntityUtils.toString(httpResponse.getEntity()));
 
             return null;
         }
@@ -145,7 +145,7 @@ public final class TokenRefreshService {
         } catch (JsonProcessingException e) {
             String message = "Failed to parse token refresh response";
 
-            throw new TwitterServiceException(message, e);
+            throw new TwitterException(message, e);
         }
 
         return response;
@@ -165,13 +165,13 @@ public final class TokenRefreshService {
         } catch (IOException e) {
             String message = "Failed to execute token refresh request";
 
-            throw new TwitterServiceException(message, e);
+            throw new TwitterException(message, e);
         }
 
         if (response == null) {
             String message = "Token refresh request was not successful";
 
-            throw new TwitterServiceException(message);
+            throw new TwitterException(message);
         }
 
         this.secretService.setTwitterTokens(response.accessToken, response.refreshToken);
