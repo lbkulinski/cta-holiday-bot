@@ -173,6 +173,6 @@ public final class TokenRefreshService {
             throw new TwitterServiceException(message);
         }
 
-        this.secretService.setTwitterTokens(response.accessToken,  response.refreshToken);
+        this.secretService.setTwitterTokens(response.accessToken, response.refreshToken);
     }
 }
