@@ -1,7 +1,7 @@
 package com.cta4j.twitter.service;
 
 import com.cta4j.twitter.exception.TwitterException;
-import com.cta4j.secretsmanager.service.SecretService;
+import com.cta4j.common.service.SecretService;
 import com.cta4j.twitter.dto.Tweet;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -12,6 +12,8 @@ import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,8 @@ import java.util.Objects;
 
 @Service
 public final class TweetService {
+    private static final Logger log = LoggerFactory.getLogger(TweetService.class);
+
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "api.x.com";
     private static final String CREATE_TWEET_ENDPOINT = "/2/tweets";
@@ -131,6 +135,14 @@ public final class TweetService {
         HttpEntity entity = httpResponse.getEntity();
 
         String entityString = EntityUtils.toString(entity);
+
+        if (statusCode != HttpStatus.SC_CREATED) {
+            String reasonPhrase = httpResponse.getReasonPhrase();
+
+            log.error("HTTP status code {}, reason {}, body {}", statusCode, reasonPhrase, entityString);
+
+            return new Response(statusCode, null);
+        }
 
         ResponseBody body;
 

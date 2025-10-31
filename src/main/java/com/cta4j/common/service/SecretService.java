@@ -1,6 +1,6 @@
-package com.cta4j.secretsmanager.service;
+package com.cta4j.common.service;
 
-import com.cta4j.secretsmanager.dto.Secret;
+import com.cta4j.common.dto.Secret;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
@@ -65,12 +65,12 @@ public final class SecretService {
 
         Objects.requireNonNull(refreshToken);
 
-        this.secret = this.secret.withTwitterTokens(accessToken, refreshToken);
+        Secret newSecret = this.secret.withTwitterTokens(accessToken, refreshToken);
 
         String secretString;
 
         try {
-            secretString = this.objectMapper.writeValueAsString(this.secret);
+            secretString = this.objectMapper.writeValueAsString(newSecret);
         } catch (JsonProcessingException e) {
             String message = "Failed to serialize secret to JSON string";
 
@@ -83,5 +83,7 @@ public final class SecretService {
                                                              .build();
 
         this.secretsManagerClient.putSecretValue(request);
+
+        this.secret = newSecret;
     }
 }

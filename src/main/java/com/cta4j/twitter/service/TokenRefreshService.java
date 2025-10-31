@@ -1,8 +1,8 @@
 package com.cta4j.twitter.service;
 
-import com.cta4j.secretsmanager.dto.Secret;
+import com.cta4j.common.dto.Secret;
 import com.cta4j.twitter.exception.TwitterException;
-import com.cta4j.secretsmanager.service.SecretService;
+import com.cta4j.common.service.SecretService;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -128,12 +128,12 @@ public final class TokenRefreshService {
 
         HttpEntity entity = httpResponse.getEntity();
 
-        String responseBody = EntityUtils.toString(entity);
+        String entityString = EntityUtils.toString(entity);
 
         if (statusCode != HttpStatus.SC_OK) {
-            log.error("HTTP status code {}, reason {}", statusCode, httpResponse.getReasonPhrase());
+            String reasonPhrase = httpResponse.getReasonPhrase();
 
-            log.error("Response body: {}", responseBody);
+            log.error("HTTP status code {}, reason {}, body {}", statusCode, reasonPhrase, entityString);
 
             return null;
         }
@@ -141,7 +141,7 @@ public final class TokenRefreshService {
         Response response;
 
         try {
-            response = this.objectMapper.readValue(responseBody, Response.class);
+            response = this.objectMapper.readValue(entityString, Response.class);
         } catch (JsonProcessingException e) {
             String message = "Failed to parse token refresh response";
 

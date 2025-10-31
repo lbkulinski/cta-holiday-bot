@@ -1,8 +1,8 @@
 package com.cta4j.mapbox.service;
 
 import com.cta4j.mapbox.exception.MapboxException;
-import com.cta4j.secretsmanager.dto.Secret;
-import com.cta4j.secretsmanager.service.SecretService;
+import com.cta4j.common.dto.Secret;
+import com.cta4j.common.service.SecretService;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -73,6 +73,8 @@ public final class MapboxService {
 
             throw new MapboxException(message, e);
         }
+
+        tempFile.deleteOnExit();
 
         return tempFile;
     }

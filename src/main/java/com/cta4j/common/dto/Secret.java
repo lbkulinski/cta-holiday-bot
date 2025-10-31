@@ -1,4 +1,4 @@
-package com.cta4j.secretsmanager.dto;
+package com.cta4j.common.dto;
 
 public record Secret(TwitterSecret twitter, BlueskySecret bluesky, MapboxSecret mapbox, CtaSecret cta) {
     public record TwitterSecret(
