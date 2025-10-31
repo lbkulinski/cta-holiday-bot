@@ -27,8 +27,6 @@ import java.util.Objects;
 
 @Service
 public final class TweetService {
-    private static final Logger log = LoggerFactory.getLogger(TweetService.class);
-
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "api.x.com";
     private static final String CREATE_TWEET_ENDPOINT = "/2/tweets";
