@@ -12,8 +12,6 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.net.URIBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +23,6 @@ import java.util.Objects;
 
 @Service
 public final class MediaService {
-    private static final Logger log = LoggerFactory.getLogger(MediaService.class);
-
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "api.x.com";
     private static final String MEDIA_ENDPOINT = "/2/media/upload";
