@@ -1,0 +1,45 @@
+package com.cta4j.twitter.publisher;
+
+import com.cta4j.common.dto.PostPayload;
+import com.cta4j.common.publisher.SocialPublisher;
+import com.cta4j.twitter.service.MediaService;
+import com.cta4j.twitter.service.TweetService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import java.io.File;
+import java.util.Objects;
+
+@Component
+public final class TwitterPublisher implements SocialPublisher {
+    private final MediaService mediaService;
+    private final TweetService tweetService;
+
+    @Autowired
+    public TwitterPublisher(MediaService mediaService, TweetService tweetService) {
+        this.mediaService = mediaService;
+        this.tweetService = tweetService;
+    }
+
+    @Override
+    public void publish(PostPayload payload) {
+        Objects.requireNonNull(payload);
+
+        String text = payload.text();
+
+        File media = payload.media();
+
+        if (media == null) {
+            this.tweetService.postTweet(text);
+        }
+
+        String mediaId = null;
+
+        if (media != null) {
+            mediaId = this.mediaService.uploadMedia(media)
+                                       .id();
+        }
+
+        this.tweetService.postTweet(text, mediaId);
+    }
+}

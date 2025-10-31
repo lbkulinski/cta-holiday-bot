@@ -78,12 +78,20 @@ public final class TweetService {
     }
 
     private StringEntity buildStringEntity(String text, String mediaId) {
-        Map<String, ?> requestMap = Map.of(
-            "text", text,
-            "media", Map.of(
-                "media_ids", Collections.singletonList(mediaId)
-            )
-        );
+        Map<String, ?> requestMap;
+
+        if (mediaId == null) {
+            requestMap = Map.of(
+                "text", text
+            );
+        } else {
+            requestMap = Map.of(
+                "text", text,
+                "media", Map.of(
+                    "media_ids", Collections.singletonList(mediaId)
+                )
+            );
+        }
 
         String requestBody;
 
@@ -190,5 +198,9 @@ public final class TweetService {
         }
 
         return retryResponse.body.data;
+    }
+
+    public Tweet postTweet(String text) {
+        return this.postTweet(text, null);
     }
 }

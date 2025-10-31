@@ -1,5 +1,8 @@
 package com.cta4j.runner;
 
+import com.cta4j.announcement.service.ArrivalAnnouncementService;
+import com.cta4j.common.dto.PostPayload;
+import com.cta4j.common.publisher.MultiplatformPublisher;
 import com.cta4j.mapbox.service.MapboxService;
 import com.cta4j.secretsmanager.dto.Secret;
 import com.cta4j.secretsmanager.service.SecretService;
@@ -7,41 +10,39 @@ import com.cta4j.train.client.TrainClient;
 import com.cta4j.train.model.Train;
 import com.cta4j.train.model.TrainCoordinates;
 import com.cta4j.train.model.UpcomingTrainArrival;
-import com.cta4j.twitter.dto.Media;
-import com.cta4j.twitter.dto.Tweet;
-import com.cta4j.twitter.service.MediaService;
-import com.cta4j.twitter.service.TweetService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.math.BigDecimal;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
 @Component
 public class TweetRunner implements CommandLineRunner {
-    private static final String TRAIN_RUN = "412";
+    private static final Logger log = LoggerFactory.getLogger(TweetRunner.class);
+
+    private static final String TRAIN_RUN = "436";
 
     private final Secret secret;
-    private final TweetService tweetService;
+    private final ArrivalAnnouncementService announcementService;
     private final MapboxService mapboxService;
-    private final MediaService mediaService;
+    private final MultiplatformPublisher multiplatformPublisher;
 
     @Autowired
     public TweetRunner(
         SecretService secretService,
-        TweetService tweetService,
+        ArrivalAnnouncementService announcementService,
         MapboxService mapboxService,
-        MediaService mediaService
+        MultiplatformPublisher multiplatformPublisher
     ) {
         this.secret = secretService.getSecret();
-        this.tweetService = tweetService;
+        this.announcementService = announcementService;
         this.mapboxService = mapboxService;
-        this.mediaService = mediaService;
+        this.multiplatformPublisher = multiplatformPublisher;
     }
 
     @Override
@@ -56,7 +57,7 @@ public class TweetRunner implements CommandLineRunner {
         Optional<Train> optionalTrain = trainClient.getTrain(TRAIN_RUN);
 
         if (optionalTrain.isEmpty()) {
-            System.out.println("Train not found.");
+            log.error("Train run {} not found. Unable to post to socials.", TRAIN_RUN);
 
             return;
         }
@@ -66,53 +67,28 @@ public class TweetRunner implements CommandLineRunner {
         List<UpcomingTrainArrival> arrivals = train.arrivals();
 
         if (arrivals.isEmpty()) {
-            System.out.println("No upcoming arrivals for the train.");
+            log.error("Train run {} has no upcoming arrivals. Unable to post to socials.", TRAIN_RUN);
 
             return;
         }
 
+        UpcomingTrainArrival arrival = arrivals.getFirst();
+
+        String text = this.announcementService.createAnnouncement(TRAIN_RUN, arrival);
+
         TrainCoordinates coordinates = train.coordinates();
-        BigDecimal latitude = coordinates.latitude();
-        BigDecimal longitude = coordinates.longitude();
 
-        File file = this.mapboxService.generateMap(latitude, longitude);
+        File media = null;
 
-        Media media = this.mediaService.uploadMedia(file);
+        if (coordinates != null) {
+            BigDecimal latitude = coordinates.latitude();
+            BigDecimal longitude = coordinates.longitude();
 
-        String mediaId = media.id();
+            media = this.mapboxService.generateMap(latitude, longitude);
+        }
 
-        UpcomingTrainArrival arrival = train.arrivals()
-                                            .getFirst();
+        PostPayload postPayload = new PostPayload(text, media);
 
-        //Loop-bound Purple Line Run 1225 will be arriving at Wilson at 7:26 PM
-
-        String destination = arrival.destinationName();
-
-        String route = arrival.route().toString();
-
-        String titleCaseRoute = route.substring(0, 1).toUpperCase() + route.substring(1).toLowerCase();
-
-        String station = arrival.stationName();
-
-        ZoneId zoneId = ZoneId.of("America/Chicago");
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("h:mm a");
-
-        String arrivalTime = arrival.arrivalTime()
-                                    .atZone(zoneId)
-                                    .toLocalDateTime()
-                                    .format(formatter);
-
-        String tweetText = String.format(
-            "%s-bound %s Line Run 1225 will be arriving at %s at %s",
-            destination,
-            titleCaseRoute,
-            station,
-            arrivalTime
-        );
-
-        Tweet tweet = this.tweetService.postTweet(tweetText, mediaId);
-
-        System.out.printf("Tweet posted successfully! Tweet ID: %s%n", tweet.id());
+        this.multiplatformPublisher.publish(postPayload);
     }
 }
