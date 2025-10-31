@@ -151,7 +151,6 @@ public final class TweetService {
     
     public Tweet postTweet(String text, String mediaId) {
         Objects.requireNonNull(text);
-        Objects.requireNonNull(mediaId);
 
         HttpPost httpPost = this.buildRequest(text, mediaId);
 

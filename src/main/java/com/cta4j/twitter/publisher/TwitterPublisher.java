@@ -31,14 +31,12 @@ public final class TwitterPublisher implements SocialPublisher {
 
         if (media == null) {
             this.tweetService.postTweet(text);
+
+            return;
         }
 
-        String mediaId = null;
-
-        if (media != null) {
-            mediaId = this.mediaService.uploadMedia(media)
-                                       .id();
-        }
+        String mediaId = this.mediaService.uploadMedia(media)
+                                          .id();
 
         this.tweetService.postTweet(text, mediaId);
     }
