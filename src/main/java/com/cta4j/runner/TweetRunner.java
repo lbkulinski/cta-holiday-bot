@@ -1,6 +1,6 @@
 package com.cta4j.runner;
 
-import com.cta4j.announcement.service.ArrivalAnnouncementService;
+import com.cta4j.announcement.service.AnnouncementService;
 import com.cta4j.common.dto.PostPayload;
 import com.cta4j.common.publisher.MultiplatformPublisher;
 import com.cta4j.mapbox.service.MapboxService;
@@ -25,17 +25,17 @@ import java.util.Optional;
 public class TweetRunner implements CommandLineRunner {
     private static final Logger log = LoggerFactory.getLogger(TweetRunner.class);
 
-    private static final String TRAIN_RUN = "436";
+    private static final String TRAIN_RUN = "414";
 
     private final Secret secret;
-    private final ArrivalAnnouncementService announcementService;
+    private final AnnouncementService announcementService;
     private final MapboxService mapboxService;
     private final MultiplatformPublisher multiplatformPublisher;
 
     @Autowired
     public TweetRunner(
         SecretService secretService,
-        ArrivalAnnouncementService announcementService,
+        AnnouncementService announcementService,
         MapboxService mapboxService,
         MultiplatformPublisher multiplatformPublisher
     ) {
@@ -74,7 +74,7 @@ public class TweetRunner implements CommandLineRunner {
 
         UpcomingTrainArrival arrival = arrivals.getFirst();
 
-        String text = this.announcementService.createAnnouncement(TRAIN_RUN, arrival);
+        String text = this.announcementService.buildAnnouncement(TRAIN_RUN, arrival);
 
         TrainCoordinates coordinates = train.coordinates();
 

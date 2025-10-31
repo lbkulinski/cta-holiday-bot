@@ -120,7 +120,7 @@ public final class MediaService {
 
             log.error("HTTP status code {}, reason {}, body {}", statusCode, reasonPhrase, entityString);
 
-            return null;
+            return new Response(statusCode, null);
         }
 
         ResponseBody responseBody;

@@ -8,11 +8,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 @Service
-public final class ArrivalAnnouncementService {
+public final class AnnouncementService {
     private static final ZoneId ZONE = ZoneId.of("America/Chicago");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
 
-    public String createAnnouncement(String run, UpcomingTrainArrival arrival) {
+    public String buildAnnouncement(String run, UpcomingTrainArrival arrival) {
         Objects.requireNonNull(run);
         Objects.requireNonNull(arrival);
 

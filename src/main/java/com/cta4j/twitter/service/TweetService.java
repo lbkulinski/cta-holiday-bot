@@ -175,7 +175,15 @@ public final class TweetService {
         int statusCode = response.statusCode();
 
         if (statusCode == HttpStatus.SC_CREATED) {
-            return response.body.data;
+            ResponseBody body = response.body;
+
+            if (body == null) {
+                String message = "Create tweet response body is null";
+
+                throw new TwitterException(message);
+            }
+
+            return body.data;
         } else if (statusCode != HttpStatus.SC_UNAUTHORIZED) {
             String message = String.format("Failed to create tweet, status code: %d", statusCode);
 
@@ -204,7 +212,15 @@ public final class TweetService {
             throw new TwitterException(message);
         }
 
-        return retryResponse.body.data;
+        ResponseBody retryBody = retryResponse.body;
+
+        if (retryBody == null) {
+            String message = "Create tweet response body is null after retrying";
+
+            throw new TwitterException(message);
+        }
+
+        return retryBody.data;
     }
 
     public Tweet postTweet(String text) {
