@@ -21,10 +21,8 @@ public final class SecretService {
 
     private final String secretId;
 
-    private final Object lock;
-
     @Getter
-    private volatile Secret secret;
+    private Secret secret;
 
     @Autowired
     public SecretService(
@@ -36,7 +34,6 @@ public final class SecretService {
         this.objectMapper = objectMapper;
         this.secretId = secretId;
         this.secret = loadSecret(secretsManagerClient, objectMapper, secretId);
-        this.lock = new Object();
     }
 
     private static Secret loadSecret(SecretsManagerClient secretsManagerClient, ObjectMapper objectMapper,
@@ -62,14 +59,12 @@ public final class SecretService {
         return secret;
     }
 
-    public void setTwitterTokens(String accessToken, String refreshToken) {
+    public synchronized void setTwitterTokens(String accessToken, String refreshToken) {
         Objects.requireNonNull(accessToken);
 
         Objects.requireNonNull(refreshToken);
 
-        synchronized (this.lock) {
-            this.secret = this.secret.withTwitterTokens(accessToken, refreshToken);
-        }
+        this.secret = this.secret.withTwitterTokens(accessToken, refreshToken);
 
         String secretString;
 
