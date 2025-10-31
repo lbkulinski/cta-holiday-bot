@@ -126,17 +126,17 @@ public final class TokenRefreshService {
     private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
 
-        if (statusCode != HttpStatus.SC_OK) {
-            log.info("HTTP status code {}, reason {}", statusCode, httpResponse.getReasonPhrase());
-
-            log.info("Response body: {}", EntityUtils.toString(httpResponse.getEntity()));
-
-            return null;
-        }
-
         HttpEntity entity = httpResponse.getEntity();
 
         String responseBody = EntityUtils.toString(entity);
+
+        if (statusCode != HttpStatus.SC_OK) {
+            log.error("HTTP status code {}, reason {}", statusCode, httpResponse.getReasonPhrase());
+
+            log.error("Response body: {}", responseBody);
+
+            return null;
+        }
 
         Response response;
 
