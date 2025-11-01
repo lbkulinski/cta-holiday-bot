@@ -1,4 +1,4 @@
-name: CTA Holiday Bot – Build & Test
+name: CTA Holiday Bot – Deploy to AWS Lambda
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: corretto
-          java-version: '25'
+          java-version: '21'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
