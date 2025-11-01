@@ -116,10 +116,6 @@ public final class MediaService {
         String entityString = EntityUtils.toString(entity);
 
         if (statusCode != HttpStatus.SC_OK) {
-            String reasonPhrase = httpResponse.getReasonPhrase();
-
-            log.error("HTTP status code {}, reason {}, body {}", statusCode, reasonPhrase, entityString);
-
             return new Response(statusCode, null);
         }
 

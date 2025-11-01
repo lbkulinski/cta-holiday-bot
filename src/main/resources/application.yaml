@@ -7,3 +7,6 @@ app:
   aws:
     secrets-manager:
       secret-id: ${APP_AWS_SECRETS_MANAGER_SECRET_ID}
+  cta:
+    train:
+      run: ${APP_CTA_TRAIN_RUN}

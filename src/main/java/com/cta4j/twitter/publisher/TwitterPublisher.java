@@ -1,6 +1,6 @@
 package com.cta4j.twitter.publisher;
 
-import com.cta4j.common.dto.PostPayload;
+import com.cta4j.common.dto.Post;
 import com.cta4j.common.publisher.SocialPublisher;
 import com.cta4j.twitter.service.MediaService;
 import com.cta4j.twitter.service.TweetService;
@@ -12,6 +12,8 @@ import java.util.Objects;
 
 @Component
 public final class TwitterPublisher implements SocialPublisher {
+    private static final String PLATFORM_NAME = "Twitter";
+
     private final MediaService mediaService;
     private final TweetService tweetService;
 
@@ -22,7 +24,12 @@ public final class TwitterPublisher implements SocialPublisher {
     }
 
     @Override
-    public void publish(PostPayload payload) {
+    public String getPlatformName() {
+        return PLATFORM_NAME;
+    }
+
+    @Override
+    public void publish(Post payload) {
         Objects.requireNonNull(payload);
 
         String text = payload.text();
