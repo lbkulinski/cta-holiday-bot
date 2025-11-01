@@ -33,7 +33,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::010526257497:role/wtl-vod-discord-notifier-github-actions-role
+          role-to-assume: arn:aws:iam::038462756529:role/cta-holiday-bot-github-actions-role
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Build
@@ -51,12 +51,12 @@ jobs:
       - name: Upload artifact to S3
         run: |
           FILE='${{ steps.package.outputs.deployment-file }}'
-          aws s3 cp "$FILE" "s3://wtl-lambda-deploy-prod/wtl-vod-discord-notifier/${{ github.sha }}.jar"
+          aws s3 cp "$FILE" "s3://cta-holiday-bot-lambda-deploy-prod/${{ github.sha }}.jar"
 
       - name: Update Lambda from S3
         run: |
           aws lambda update-function-code \
             --function-name "${{ env.LAMBDA_FUNCTION_NAME }}" \
-            --s3-bucket "wtl-lambda-deploy-prod" \
-            --s3-key "wtl-vod-discord-notifier/${{ github.sha }}.jar" \
+            --s3-bucket "cta-holiday-bot-lambda-deploy-prod" \
+            --s3-key "${{ github.sha }}.jar" \
             --publish
