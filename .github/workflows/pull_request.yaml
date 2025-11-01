@@ -28,5 +28,7 @@ jobs:
 
       - name: Build with Maven
         env:
+          APP_ROLLBAR_ENVIRONMENT: github-actions
           APP_AWS_SECRETS_MANAGER_SECRET_ID: foo
+          APP_CTA_TRAIN_RUN: 123
         run: mvn -B package -DskipTests --file pom.xml
