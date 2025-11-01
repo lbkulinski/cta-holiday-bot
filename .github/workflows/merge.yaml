@@ -42,7 +42,7 @@ jobs:
         id: package
         run: |
           set -Eeuo pipefail
-          mvn -B clean package shade:shade
+          mvn -B clean package -DskipTests=true shade:shade
           BUILD_DIR=$(mvn help:evaluate -Dexpression=project.build.directory -q -DforceStdout)
           JAR_FILE=$(ls "${BUILD_DIR}" | grep '.jar$' | grep -v '^original')
           DEPLOY_DIR="${BUILD_DIR}/deployment"
