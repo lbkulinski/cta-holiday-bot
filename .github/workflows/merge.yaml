@@ -1,0 +1,62 @@
+name: CTA Holiday Bot – Build & Test
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: true
+
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: corretto
+          java-version: '25'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::010526257497:role/wtl-vod-discord-notifier-github-actions-role
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Build
+        id: package
+        run: |
+          set -Eeuo pipefail
+          mvn -B clean package shade:shade
+          BUILD_DIR=$(mvn help:evaluate -Dexpression=project.build.directory -q -DforceStdout)
+          JAR_FILE=$(ls "${BUILD_DIR}" | grep '.jar$' | grep -v '^original')
+          DEPLOY_DIR="${BUILD_DIR}/deployment"
+          mkdir -p "$DEPLOY_DIR"
+          cp "${BUILD_DIR}/${JAR_FILE}" "${DEPLOY_DIR}/${JAR_FILE}"
+          echo "deployment-file=${DEPLOY_DIR}/${JAR_FILE}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact to S3
+        run: |
+          FILE='${{ steps.package.outputs.deployment-file }}'
+          aws s3 cp "$FILE" "s3://wtl-lambda-deploy-prod/wtl-vod-discord-notifier/${{ github.sha }}.jar"
+
+      - name: Update Lambda from S3
+        run: |
+          aws lambda update-function-code \
+            --function-name "${{ env.LAMBDA_FUNCTION_NAME }}" \
+            --s3-bucket "wtl-lambda-deploy-prod" \
+            --s3-key "wtl-vod-discord-notifier/${{ github.sha }}.jar" \
+            --publish
