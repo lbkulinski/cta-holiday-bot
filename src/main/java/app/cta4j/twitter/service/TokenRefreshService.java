@@ -1,56 +1,38 @@
 package app.cta4j.twitter.service;
 
-import app.cta4j.common.dto.Secret;
 import app.cta4j.twitter.exception.TwitterException;
 import app.cta4j.common.service.SecretService;
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.hc.client5.http.classic.methods.HttpPost;
-import org.apache.hc.client5.http.entity.UrlEncodedFormEntity;
-import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import com.nimbusds.oauth2.sdk.*;
+import com.nimbusds.oauth2.sdk.ParseException;
+import com.nimbusds.oauth2.sdk.auth.ClientAuthentication;
+import com.nimbusds.oauth2.sdk.auth.ClientSecretBasic;
+import com.nimbusds.oauth2.sdk.auth.Secret;
+import com.nimbusds.oauth2.sdk.http.HTTPResponse;
+import com.nimbusds.oauth2.sdk.id.ClientID;
+import com.nimbusds.oauth2.sdk.token.RefreshToken;
 import org.apache.hc.core5.http.*;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
-import org.apache.hc.core5.http.message.BasicNameValuePair;
 import org.apache.hc.core5.net.URIBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
 
 @Service
 public final class TokenRefreshService {
-    private static final Logger log = LoggerFactory.getLogger(TokenRefreshService.class);
-
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "api.x.com";
     private static final String OAUTH_TOKEN_ENDPOINT = "/2/oauth2/token";
 
     private final SecretService secretService;
-    private final CloseableHttpClient httpClient;
-    private final ObjectMapper objectMapper;
 
     @Autowired
-    public TokenRefreshService(
-        SecretService secretService,
-        CloseableHttpClient httpClient,
-        ObjectMapper objectMapper
-    ) {
+    public TokenRefreshService(SecretService secretService) {
         this.secretService = secretService;
-        this.httpClient = httpClient;
-        this.objectMapper = objectMapper;
     }
 
-    private URI buildUri() {
+    private URI getUri() {
         URI uri;
 
         try {
@@ -68,108 +50,77 @@ public final class TokenRefreshService {
         return uri;
     }
 
-    private String buildAuthorizationHeader() {
-        Secret.TwitterSecret secret = this.secretService.getSecret()
-                                                        .twitter();
+    private ClientAuthentication getAuthentication() {
+        var twitterSecret = this.secretService.getSecret()
+                                              .twitter();
 
-        String credentials = String.format("%s:%s", secret.clientId(), secret.clientSecret());
+        ClientID clientId = new ClientID(twitterSecret.clientId());
 
-        byte[] bytes = credentials.getBytes(StandardCharsets.UTF_8);
+        Secret clientSecret = new Secret(twitterSecret.clientSecret());
 
-        String encodedCredentials = Base64.getEncoder()
-                                          .encodeToString(bytes);
-
-        return String.format("Basic %s", encodedCredentials);
+        return new ClientSecretBasic(clientId, clientSecret);
     }
 
-    private UrlEncodedFormEntity buildEntity(String refreshToken) {
-        List<NameValuePair> params = new ArrayList<>();
-
-        params.add(new BasicNameValuePair("grant_type", "refresh_token"));
-
-        params.add(new BasicNameValuePair("refresh_token", refreshToken));
-
-        return new UrlEncodedFormEntity(params, StandardCharsets.UTF_8);
+    private RefreshTokenGrant getGrant() {
+        String refreshToken = this.secretService.getSecret()
+                                                .twitter()
+                                                .refreshToken();
+        RefreshToken token = new RefreshToken(refreshToken);
+        return new RefreshTokenGrant(token);
     }
 
-    private HttpPost buildRequest(String refreshToken) {
-        URI uri = this.buildUri();
-
-        HttpPost httpPost = new HttpPost(uri);
-
-        String authorizationHeader = this.buildAuthorizationHeader();
-
-        httpPost.addHeader(HttpHeaders.AUTHORIZATION, authorizationHeader);
-
-        httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON);
-
-        UrlEncodedFormEntity entity = this.buildEntity(refreshToken);
-
-        httpPost.setEntity(entity);
-
-        return httpPost;
+    private Scope getScope() {
+        return new Scope("tweet.read", "tweet.write", "users.read", "offline.access");
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record Response(
-        @JsonAlias("access_token")
-        String accessToken,
+    public void refreshAccessToken() {
+        URI uri = this.getUri();
 
-        @JsonAlias("refresh_token")
-        String refreshToken
-    ) {}
+        ClientAuthentication authentication = this.getAuthentication();
 
-    private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
-        int statusCode = httpResponse.getCode();
+        RefreshTokenGrant grant = this.getGrant();
 
-        HttpEntity entity = httpResponse.getEntity();
+        Scope scope = this.getScope();
 
-        String entityString = EntityUtils.toString(entity);
+        TokenRequest request = new TokenRequest(uri, authentication, grant, scope);
 
-        if (statusCode != HttpStatus.SC_OK) {
-            String reasonPhrase = httpResponse.getReasonPhrase();
-
-            log.error("HTTP status code {}, reason {}, body {}", statusCode, reasonPhrase, entityString);
-
-            return null;
-        }
-
-        Response response;
+        HTTPResponse response;
 
         try {
-            response = this.objectMapper.readValue(entityString, Response.class);
-        } catch (JsonProcessingException e) {
+            response = request.toHTTPRequest()
+                              .send();
+        } catch (IOException e) {
+            String message = "Failed to send token refresh request";
+
+            throw new TwitterException(message, e);
+        }
+
+        TokenResponse tokenResponse;
+
+        try {
+            tokenResponse = TokenResponse.parse(response);
+        } catch (ParseException e) {
             String message = "Failed to parse token refresh response";
 
             throw new TwitterException(message, e);
         }
 
-        return response;
-    }
-
-    public void refreshAccessToken() {
-        String refreshToken = this.secretService.getSecret()
-                                                .twitter()
-                                                .refreshToken();
-
-        HttpPost httpPost = this.buildRequest(refreshToken);
-
-        Response response;
-
-        try {
-            response = this.httpClient.execute(httpPost, this::handleResponse);
-        } catch (IOException e) {
-            String message = "Failed to execute token refresh request";
-
-            throw new TwitterException(message, e);
-        }
-
-        if (response == null) {
+        if (!tokenResponse.indicatesSuccess()) {
             String message = "Token refresh request was not successful";
 
             throw new TwitterException(message);
         }
 
-        this.secretService.setTwitterTokens(response.accessToken, response.refreshToken);
+        AccessTokenResponse successResponse = tokenResponse.toSuccessResponse();
+
+        var tokens = successResponse.getTokens();
+
+        String newAccessToken = tokens.getAccessToken()
+                                      .getValue();
+
+        String newRefreshToken = tokens.getRefreshToken()
+                                       .getValue();
+
+        this.secretService.setTwitterTokens(newAccessToken, newRefreshToken);
     }
 }

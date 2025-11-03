@@ -29,18 +29,18 @@ public final class TwitterPublisher implements SocialPublisher {
     }
 
     @Override
-    public void publish(Post payload) {
-        Objects.requireNonNull(payload);
+    public void publish(Post post) {
+        Objects.requireNonNull(post);
 
-        if (payload.media() == null) {
-            this.tweetService.postTweet(payload.text());
+        if (post.media() == null) {
+            this.tweetService.postTweet(post.text());
 
             return;
         }
 
-        String mediaId = this.mediaService.uploadMedia(payload.media())
+        String mediaId = this.mediaService.uploadMedia(post.media())
                                           .id();
 
-        this.tweetService.postTweet(payload.text(), mediaId);
+        this.tweetService.postTweet(post.text(), mediaId);
     }
 }

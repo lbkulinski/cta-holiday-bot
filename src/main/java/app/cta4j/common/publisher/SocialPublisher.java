@@ -5,5 +5,5 @@ import app.cta4j.common.dto.Post;
 public interface SocialPublisher {
     String getPlatformName();
 
-    void publish(Post payload);
+    void publish(Post post);
 }
