@@ -8,7 +8,7 @@ public record Secret(TwitterSecret twitter, BlueskySecret bluesky, MapboxSecret 
         String refreshToken
     ) {}
 
-    public record BlueskySecret(String appPassword) {}
+    public record BlueskySecret(String identifier, String appPassword) {}
 
     public record MapboxSecret(String accessToken) {}
 

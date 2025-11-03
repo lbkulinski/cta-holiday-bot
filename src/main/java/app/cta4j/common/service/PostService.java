@@ -3,6 +3,7 @@ package app.cta4j.common.service;
 import app.cta4j.common.dto.Post;
 import app.cta4j.mapbox.service.MapboxService;
 import com.cta4j.train.client.TrainClient;
+import com.cta4j.train.model.Route;
 import com.cta4j.train.model.Train;
 import com.cta4j.train.model.TrainCoordinates;
 import com.cta4j.train.model.UpcomingTrainArrival;
@@ -32,23 +33,18 @@ public final class PostService {
         this.mapboxService = mapboxService;
     }
 
-    private String toTitleCase(String str) {
-        if ((str == null) || str.isEmpty()) {
-            return str;
+    private String toTitleCase(Route route) {
+        if (route == null) {
+            return null;
         }
 
-        return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+        String string = route.toString();
+
+        return string.substring(0, 1).toUpperCase() + string.substring(1).toLowerCase();
     }
 
     private String buildText(String run, UpcomingTrainArrival arrival) {
-        String destination = arrival.destinationName();
-
-        String route = arrival.route()
-                              .toString();
-
-        String titleCaseRoute = this.toTitleCase(route);
-
-        String station = arrival.stationName();
+        String route = this.toTitleCase(arrival.route());
 
         String arrivalTime = arrival.arrivalTime()
                                     .atZone(ZONE)
@@ -57,10 +53,10 @@ public final class PostService {
 
         return String.format(
             "%s-bound %s Line Run %s will be arriving at %s at %s",
-            destination,
-            titleCaseRoute,
+            arrival.destinationName(),
+            route,
             run,
-            station,
+            arrival.stationName(),
             arrivalTime
         );
     }
@@ -70,14 +66,11 @@ public final class PostService {
             return null;
         }
 
-        BigDecimal latitude = coordinates.latitude();
-        BigDecimal longitude = coordinates.longitude();
-
-        if ((latitude == null) || (longitude == null)) {
+        if ((coordinates.latitude() == null) || (coordinates.longitude() == null)) {
             return null;
         }
 
-        return this.mapboxService.generateMap(latitude, longitude);
+        return this.mapboxService.generateMap(coordinates.latitude(), coordinates.longitude());
     }
 
     private Post buildPost(String run, Train train) {

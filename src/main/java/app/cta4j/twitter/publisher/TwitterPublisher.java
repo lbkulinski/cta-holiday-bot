@@ -32,19 +32,15 @@ public final class TwitterPublisher implements SocialPublisher {
     public void publish(Post payload) {
         Objects.requireNonNull(payload);
 
-        String text = payload.text();
-
-        File media = payload.media();
-
-        if (media == null) {
-            this.tweetService.postTweet(text);
+        if (payload.media() == null) {
+            this.tweetService.postTweet(payload.text());
 
             return;
         }
 
-        String mediaId = this.mediaService.uploadMedia(media)
+        String mediaId = this.mediaService.uploadMedia(payload.media())
                                           .id();
 
-        this.tweetService.postTweet(text, mediaId);
+        this.tweetService.postTweet(payload.text(), mediaId);
     }
 }

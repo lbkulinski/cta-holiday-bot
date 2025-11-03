@@ -23,7 +23,7 @@ public final class SecretService {
     private final String secretId;
 
     @Getter(onMethod_ = @Synchronized)
-    private Secret secret;
+    private volatile Secret secret;
 
     @Autowired
     public SecretService(
@@ -37,8 +37,11 @@ public final class SecretService {
         this.secret = loadSecret(secretsManagerClient, objectMapper, secretId);
     }
 
-    private static Secret loadSecret(SecretsManagerClient secretsManagerClient, ObjectMapper objectMapper,
-        String secretId) {
+    private static Secret loadSecret(
+        SecretsManagerClient secretsManagerClient,
+        ObjectMapper objectMapper,
+        String secretId
+    ) {
         GetSecretValueRequest request = GetSecretValueRequest.builder()
                                                              .secretId(secretId)
                                                              .build();

@@ -72,11 +72,7 @@ public final class TokenRefreshService {
         Secret.TwitterSecret secret = this.secretService.getSecret()
                                                         .twitter();
 
-        String clientId = secret.clientId();
-
-        String clientSecret = secret.clientSecret();
-
-        String credentials = String.format("%s:%s", clientId, clientSecret);
+        String credentials = String.format("%s:%s", secret.clientId(), secret.clientSecret());
 
         byte[] bytes = credentials.getBytes(StandardCharsets.UTF_8);
 
