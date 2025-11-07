@@ -175,7 +175,7 @@ public final class TweetService {
             throw new TwitterException(message);
         }
 
-        ResponseBody body = response.body;
+        ResponseBody body = response.body();
 
         if (body == null) {
             String message = "Failed to create tweet, response body is null";
@@ -183,7 +183,7 @@ public final class TweetService {
             throw new TwitterException(message);
         }
 
-        return body.data;
+        return body.data();
     }
 
     public Tweet postTweet(String text) {

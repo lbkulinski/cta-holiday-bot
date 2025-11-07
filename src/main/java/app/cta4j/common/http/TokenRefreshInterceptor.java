@@ -68,8 +68,6 @@ public final class TokenRefreshInterceptor implements HttpRequestInterceptor {
 
         String newAccessToken = this.tokenRefreshService.refreshAccessToken();
 
-        log.info("Refresh access token: {}", newAccessToken);
-
         String newAuthorizationHeader = String.format("Bearer %s", newAccessToken);
 
         httpRequest.setHeader(HttpHeaders.AUTHORIZATION, newAuthorizationHeader);
