@@ -12,8 +12,6 @@ import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,8 +25,6 @@ import java.util.Objects;
 
 @Service
 public final class TweetService {
-    private static final Logger log = LoggerFactory.getLogger(TweetService.class);
-
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "api.x.com";
     private static final String CREATE_TWEET_ENDPOINT = "/2/tweets";
@@ -122,9 +118,9 @@ public final class TweetService {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record ResponseBody(Tweet data) {}
+    private record CreateTweetResponse(Tweet data) {}
 
-    private record Response(int statusCode, ResponseBody body) {}
+    private record Response(int statusCode, Tweet tweet) {}
 
     private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
@@ -134,24 +130,22 @@ public final class TweetService {
         String entityString = EntityUtils.toString(entity);
 
         if (statusCode != HttpStatus.SC_CREATED) {
-            String reasonPhrase = httpResponse.getReasonPhrase();
-
-            log.error("HTTP status code {}, reason {}, body {}", statusCode, reasonPhrase, entityString);
-
             return new Response(statusCode, null);
         }
 
-        ResponseBody body;
+        CreateTweetResponse response;
 
         try {
-            body = this.objectMapper.readValue(entityString, ResponseBody.class);
+            response = this.objectMapper.readValue(entityString, CreateTweetResponse.class);
         } catch (JsonProcessingException e) {
             String message = "Failed to parse create tweet response";
 
             throw new TwitterException(message, e);
         }
 
-        return new Response(statusCode, body);
+        Tweet tweet = response.data();
+
+        return new Response(statusCode, tweet);
     }
     
     public Tweet postTweet(String text, String mediaId) {
@@ -175,15 +169,15 @@ public final class TweetService {
             throw new TwitterException(message);
         }
 
-        ResponseBody body = response.body();
+        Tweet tweet = response.tweet();
 
-        if (body == null) {
+        if (tweet == null) {
             String message = "Failed to create tweet, response body is null";
 
             throw new TwitterException(message);
         }
 
-        return body.data();
+        return tweet;
     }
 
     public Tweet postTweet(String text) {

@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 @Service
@@ -81,7 +82,9 @@ public final class BlueskySessionService {
             throw new BlueskyException(message, e);
         }
 
-        return new StringEntity(jsonPayload);
+        ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
+
+        return new StringEntity(jsonPayload, contentType);
     }
 
     private HttpPost buildRequest() {
@@ -98,7 +101,7 @@ public final class BlueskySessionService {
         return httpPost;
     }
 
-    private record Response(int statusCode, Session body) {}
+    private record Response(int statusCode, Session session) {}
 
     private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
@@ -111,17 +114,17 @@ public final class BlueskySessionService {
             return new Response(statusCode, null);
         }
 
-        Session body;
+        Session session;
 
         try {
-            body = this.objectMapper.readValue(entityString, Session.class);
+            session = this.objectMapper.readValue(entityString, Session.class);
         } catch (JsonProcessingException e) {
             String message = "Failed to parse create session response";
 
             throw new BlueskyException(message, e);
         }
 
-        return new Response(statusCode, body);
+        return new Response(statusCode, session);
     }
 
     public Session createSession() {
@@ -143,6 +146,6 @@ public final class BlueskySessionService {
             throw new BlueskyException(message);
         }
 
-        return response.body();
+        return response.session();
     }
 }

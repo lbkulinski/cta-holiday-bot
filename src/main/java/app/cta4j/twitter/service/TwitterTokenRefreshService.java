@@ -66,7 +66,9 @@ public final class TwitterTokenRefreshService {
         String refreshToken = this.secretService.getSecret()
                                                 .twitter()
                                                 .refreshToken();
+
         RefreshToken token = new RefreshToken(refreshToken);
+
         return new RefreshTokenGrant(token);
     }
 

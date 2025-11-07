@@ -12,8 +12,6 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.net.URIBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +23,6 @@ import java.util.Objects;
 
 @Service
 public final class TwitterMediaService {
-    private static final Logger log = LoggerFactory.getLogger(TwitterMediaService.class);
-
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "api.x.com";
     private static final String MEDIA_ENDPOINT = "/2/media/upload";
@@ -39,8 +35,7 @@ public final class TwitterMediaService {
     public TwitterMediaService(
         SecretService secretService,
         CloseableHttpClient httpClient,
-        ObjectMapper objectMapper,
-        TwitterTokenRefreshService tokenRefreshService
+        ObjectMapper objectMapper
     ) {
         this.secretService = secretService;
         this.httpClient = httpClient;
@@ -102,38 +97,40 @@ public final class TwitterMediaService {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record ResponseBody(Media data) {}
+    private record UploadMediaResponse(Media data) {}
 
-    private record Response(int statusCode, ResponseBody body) {}
+    private record Response(int statusCode, Media media) {}
 
     private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
-
-        HttpEntity entity = httpResponse.getEntity();
-
-        String entityString = EntityUtils.toString(entity);
 
         if (statusCode != HttpStatus.SC_OK) {
             return new Response(statusCode, null);
         }
 
-        ResponseBody responseBody;
+        HttpEntity entity = httpResponse.getEntity();
+
+        String entityString = EntityUtils.toString(entity);
+
+        UploadMediaResponse response;
 
         try {
-            responseBody = this.objectMapper.readValue(entityString, ResponseBody.class);
+            response = this.objectMapper.readValue(entityString, UploadMediaResponse.class);
         } catch (JsonProcessingException e) {
             String message = "Failed to parse media upload response";
 
             throw new TwitterException(message, e);
         }
 
-        return new Response(statusCode, responseBody);
+        Media media = response.data();
+
+        return new Response(statusCode, media);
     }
 
-    public Media uploadMedia(File media) {
-        Objects.requireNonNull(media);
+    public Media uploadMedia(File file) {
+        Objects.requireNonNull(file);
 
-        HttpPost httpPost = this.buildRequest(media);
+        HttpPost httpPost = this.buildRequest(file);
 
         Response response;
 
@@ -153,14 +150,14 @@ public final class TwitterMediaService {
             throw new TwitterException(message);
         }
 
-        ResponseBody body = response.body();
+        Media media = response.media();
 
-        if (body == null) {
-            String message = "Media upload response body is null";
+        if (media == null) {
+            String message = "Failed to upload media, response body is null";
 
             throw new TwitterException(message);
         }
 
-        return body.data();
+        return media;
     }
 }
