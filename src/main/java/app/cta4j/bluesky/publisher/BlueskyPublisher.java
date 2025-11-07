@@ -4,7 +4,7 @@ import app.cta4j.common.dto.Post;
 import app.cta4j.common.publisher.SocialPublisher;
 import org.springframework.stereotype.Component;
 
-@Component
+//@Component
 public final class BlueskyPublisher implements SocialPublisher {
     private static final String PLATFORM_NAME = "Bluesky";
 

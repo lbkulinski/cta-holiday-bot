@@ -36,19 +36,16 @@ public final class TweetService {
     private final SecretService secretService;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final TokenRefreshService tokenRefreshService;
 
     @Autowired
     public TweetService(
         SecretService secretService,
         CloseableHttpClient httpClient,
-        ObjectMapper objectMapper,
-        TokenRefreshService tokenRefreshService
+        ObjectMapper objectMapper
     ) {
         this.secretService = secretService;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
-        this.tokenRefreshService = tokenRefreshService;
     }
 
     private URI buildUri() {
@@ -172,53 +169,21 @@ public final class TweetService {
             throw new TwitterException(message, e);
         }
 
-        if (response.statusCode == HttpStatus.SC_CREATED) {
-            ResponseBody body = response.body;
-
-            if (body == null) {
-                String message = "Create tweet response body is null";
-
-                throw new TwitterException(message);
-            }
-
-            return body.data;
-        } else if (response.statusCode != HttpStatus.SC_UNAUTHORIZED) {
+        if (response.statusCode != HttpStatus.SC_CREATED) {
             String message = String.format("Failed to create tweet, status code: %d", response.statusCode);
 
             throw new TwitterException(message);
         }
 
-        this.tokenRefreshService.refreshAccessToken();
+        ResponseBody body = response.body;
 
-        HttpPost retryHttpPost = this.buildRequest(text, mediaId);
-
-        Response retryResponse;
-
-        try {
-            retryResponse = this.httpClient.execute(retryHttpPost, this::handleResponse);
-        } catch (IOException e) {
-            String message = "Failed to execute create tweet request after refreshing access token";
-
-            throw new TwitterException(message, e);
-        }
-
-        int retryStatusCode = retryResponse.statusCode();
-
-        if (retryStatusCode != HttpStatus.SC_CREATED) {
-            String message = String.format("Failed to create tweet after retrying, status code: %d", retryStatusCode);
+        if (body == null) {
+            String message = "Failed to create tweet, response body is null";
 
             throw new TwitterException(message);
         }
 
-        ResponseBody retryBody = retryResponse.body;
-
-        if (retryBody == null) {
-            String message = "Create tweet response body is null after retrying";
-
-            throw new TwitterException(message);
-        }
-
-        return retryBody.data;
+        return body.data;
     }
 
     public Tweet postTweet(String text) {

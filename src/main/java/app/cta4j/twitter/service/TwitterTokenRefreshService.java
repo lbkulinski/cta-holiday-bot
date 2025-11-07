@@ -10,7 +10,7 @@ import com.nimbusds.oauth2.sdk.auth.Secret;
 import com.nimbusds.oauth2.sdk.http.HTTPResponse;
 import com.nimbusds.oauth2.sdk.id.ClientID;
 import com.nimbusds.oauth2.sdk.token.RefreshToken;
-import org.apache.hc.core5.http.*;
+import com.nimbusds.oauth2.sdk.token.Tokens;
 import org.apache.hc.core5.net.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,9 +18,10 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Instant;
 
 @Service
-public final class TokenRefreshService {
+public final class TwitterTokenRefreshService {
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "api.x.com";
     private static final String OAUTH_TOKEN_ENDPOINT = "/2/oauth2/token";
@@ -28,7 +29,7 @@ public final class TokenRefreshService {
     private final SecretService secretService;
 
     @Autowired
-    public TokenRefreshService(SecretService secretService) {
+    public TwitterTokenRefreshService(SecretService secretService) {
         this.secretService = secretService;
     }
 
@@ -73,7 +74,7 @@ public final class TokenRefreshService {
         return new Scope("tweet.read", "tweet.write", "users.read", "offline.access");
     }
 
-    public void refreshAccessToken() {
+    public String refreshAccessToken() {
         URI uri = this.getUri();
 
         ClientAuthentication authentication = this.getAuthentication();
@@ -113,7 +114,7 @@ public final class TokenRefreshService {
 
         AccessTokenResponse successResponse = tokenResponse.toSuccessResponse();
 
-        var tokens = successResponse.getTokens();
+        Tokens tokens = successResponse.getTokens();
 
         String newAccessToken = tokens.getAccessToken()
                                       .getValue();
@@ -121,6 +122,14 @@ public final class TokenRefreshService {
         String newRefreshToken = tokens.getRefreshToken()
                                        .getValue();
 
-        this.secretService.setTwitterTokens(newAccessToken, newRefreshToken);
+        long lifetime = tokens.getAccessToken()
+                              .getLifetime();
+
+        Instant expirationTime = Instant.now()
+                                        .plusSeconds(lifetime);
+
+        this.secretService.setTwitterTokens(newAccessToken, newRefreshToken, expirationTime);
+
+        return newAccessToken;
     }
 }

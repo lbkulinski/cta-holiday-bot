@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueReques
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest;
 
+import java.time.Instant;
 import java.util.Objects;
 
 @Service
@@ -63,12 +64,12 @@ public final class SecretService {
         return secret;
     }
 
-    public synchronized void setTwitterTokens(String accessToken, String refreshToken) {
+    public synchronized void setTwitterTokens(String accessToken, String refreshToken, Instant expirationTime) {
         Objects.requireNonNull(accessToken);
-
         Objects.requireNonNull(refreshToken);
+        Objects.requireNonNull(expirationTime);
 
-        Secret newSecret = this.secret.withTwitterTokens(accessToken, refreshToken);
+        Secret newSecret = this.secret.withTwitterTokens(accessToken, refreshToken, expirationTime);
 
         String secretString;
 

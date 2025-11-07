@@ -50,6 +50,11 @@
             <artifactId>secretsmanager</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.20.1</version>
+        </dependency>
+        <dependency>
             <groupId>com.cta4j</groupId>
             <artifactId>cta4j-java-sdk</artifactId>
             <version>3.0.0</version>

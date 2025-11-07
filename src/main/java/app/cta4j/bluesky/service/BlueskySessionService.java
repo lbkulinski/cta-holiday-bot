@@ -23,8 +23,8 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 @Service
-public final class SessionService {
-    private static final Logger log = LoggerFactory.getLogger(SessionService.class);
+public final class BlueskySessionService {
+    private static final Logger log = LoggerFactory.getLogger(BlueskySessionService.class);
 
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "bsky.social";
@@ -35,7 +35,7 @@ public final class SessionService {
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public SessionService(
+    public BlueskySessionService(
         SecretService secretService,
         CloseableHttpClient httpClient,
         ObjectMapper objectMapper

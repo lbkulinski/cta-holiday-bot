@@ -1,6 +1,5 @@
 package app.cta4j.runner;
 
-import app.cta4j.common.http.CustomRequestRetryStrategy;
 import app.cta4j.common.service.PostService;
 import app.cta4j.common.dto.Post;
 import app.cta4j.common.publisher.MultiplatformPublisher;
@@ -35,17 +34,16 @@ public class SocialRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
+        Optional<Post> optionalPost = this.postService.buildPost(this.trainRun);
 
-//        Optional<Post> optionalPost = this.postService.buildPost(this.trainRun);
-//
-//        if (optionalPost.isEmpty()) {
-//            log.info("No post to publish for train run {}", this.trainRun);
-//
-//            return;
-//        }
-//
-//        Post post = optionalPost.get();
-//
-//        this.multiplatformPublisher.publish(post);
+        if (optionalPost.isEmpty()) {
+            log.info("No post to publish for train run {}", this.trainRun);
+
+            return;
+        }
+
+        Post post = optionalPost.get();
+
+        this.multiplatformPublisher.publish(post);
     }
 }

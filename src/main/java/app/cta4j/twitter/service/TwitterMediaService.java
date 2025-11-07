@@ -24,8 +24,8 @@ import java.net.URISyntaxException;
 import java.util.Objects;
 
 @Service
-public final class MediaService {
-    private static final Logger log = LoggerFactory.getLogger(MediaService.class);
+public final class TwitterMediaService {
+    private static final Logger log = LoggerFactory.getLogger(TwitterMediaService.class);
 
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "api.x.com";
@@ -34,19 +34,17 @@ public final class MediaService {
     private final SecretService secretService;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final TokenRefreshService tokenRefreshService;
 
     @Autowired
-    public MediaService(
+    public TwitterMediaService(
         SecretService secretService,
         CloseableHttpClient httpClient,
         ObjectMapper objectMapper,
-        TokenRefreshService tokenRefreshService
+        TwitterTokenRefreshService tokenRefreshService
     ) {
         this.secretService = secretService;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
-        this.tokenRefreshService = tokenRefreshService;
     }
 
     private URI buildUri() {
@@ -149,36 +147,20 @@ public final class MediaService {
 
         int statusCode = response.statusCode();
 
-        if (statusCode == HttpStatus.SC_OK) {
-            return response.body.data;
-        } else if (statusCode != HttpStatus.SC_UNAUTHORIZED) {
+        if (statusCode != HttpStatus.SC_OK) {
             String message = String.format("Failed to upload media, status code: %d", statusCode);
 
             throw new TwitterException(message);
         }
 
-        this.tokenRefreshService.refreshAccessToken();
+        ResponseBody body = response.body();
 
-        HttpPost retryHttpPost = this.buildRequest(media);
-
-        Response retryResponse;
-
-        try {
-            retryResponse = this.httpClient.execute(retryHttpPost, this::handleResponse);
-        } catch (IOException e) {
-            String message = "Failed to execute upload media request after refreshing access token";
-
-            throw new TwitterException(message, e);
-        }
-
-        int retryStatusCode = retryResponse.statusCode();
-
-        if (retryStatusCode != HttpStatus.SC_OK) {
-            String message = String.format("Failed to upload media after retrying, status code: %d", retryStatusCode);
+        if (body == null) {
+            String message = "Media upload response body is null";
 
             throw new TwitterException(message);
         }
 
-        return retryResponse.body.data;
+        return body.data();
     }
 }
