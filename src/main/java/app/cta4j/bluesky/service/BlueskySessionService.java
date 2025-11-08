@@ -77,7 +77,7 @@ public final class BlueskySessionService {
 
         try {
             jsonPayload = this.objectMapper.writeValueAsString(payload);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             String message = "Failed to serialize session payload to JSON";
 
             throw new BlueskyException(message, e);

@@ -1,7 +1,6 @@
 package app.cta4j.bluesky.service;
 
 import app.cta4j.bluesky.dto.*;
-import app.cta4j.bluesky.dto.BlueskyRecord;
 import app.cta4j.bluesky.exception.BlueskyException;
 import app.cta4j.common.dto.Response;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -137,7 +136,7 @@ public final class BlueskyRecordService {
 
         try {
             record = this.objectMapper.readValue(entityString, BlueskyRecord.class);
-        }  catch (JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             String message = "Failed to parse create record response";
 
             throw new BlueskyException(message, e);

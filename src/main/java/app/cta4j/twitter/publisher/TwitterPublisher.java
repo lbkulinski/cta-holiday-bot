@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
-//@Component
+@Component
 public final class TwitterPublisher implements SocialPublisher {
     private static final Logger log = LoggerFactory.getLogger(TwitterPublisher.class);
 
@@ -21,7 +21,7 @@ public final class TwitterPublisher implements SocialPublisher {
     private final TwitterMediaService mediaService;
     private final TweetService tweetService;
 
-    //@Autowired
+    @Autowired
     public TwitterPublisher(TwitterMediaService mediaService, TweetService tweetService) {
         this.mediaService = mediaService;
         this.tweetService = tweetService;
