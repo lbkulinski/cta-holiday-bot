@@ -43,7 +43,7 @@ public final class PostService {
         return string.substring(0, 1).toUpperCase() + string.substring(1).toLowerCase();
     }
 
-    private String buildText(String run, UpcomingTrainArrival arrival) {
+    private String buildText(UpcomingTrainArrival arrival) {
         String route = this.toTitleCase(arrival.route());
 
         String arrivalTime = arrival.arrivalTime()
@@ -52,10 +52,9 @@ public final class PostService {
                                     .format(TIME_FORMAT);
 
         return String.format(
-            "%s-bound %s Line Run %s will be arriving at %s at %s",
-            arrival.destinationName(),
+            "%s Line train to %s will arrive at %s at %s 🎅",
             route,
-            run,
+            arrival.destinationName(),
             arrival.stationName(),
             arrivalTime
         );
@@ -73,7 +72,7 @@ public final class PostService {
         return this.mapboxService.generateMap(coordinates.latitude(), coordinates.longitude());
     }
 
-    private Post buildPost(String run, Train train) {
+    private Post buildPost(Train train) {
         List<UpcomingTrainArrival> arrivals = train.arrivals();
 
         if (arrivals.isEmpty()) {
@@ -86,7 +85,7 @@ public final class PostService {
 
         UpcomingTrainArrival arrival = copy.getFirst();
 
-        String text = this.buildText(run, arrival);
+        String text = this.buildText(arrival);
 
         TrainCoordinates coordinates = train.coordinates();
 
@@ -106,7 +105,7 @@ public final class PostService {
 
         Train train = optionalTrain.get();
 
-        Post post = this.buildPost(run, train);
+        Post post = this.buildPost(train);
 
         return Optional.ofNullable(post);
     }
