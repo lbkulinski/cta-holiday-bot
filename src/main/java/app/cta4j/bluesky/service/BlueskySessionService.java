@@ -2,6 +2,7 @@ package app.cta4j.bluesky.service;
 
 import app.cta4j.bluesky.dto.Session;
 import app.cta4j.bluesky.exception.BlueskyException;
+import app.cta4j.common.dto.Response;
 import app.cta4j.common.dto.Secret;
 import app.cta4j.common.service.SecretService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -101,9 +102,7 @@ public final class BlueskySessionService {
         return httpPost;
     }
 
-    private record Response(int statusCode, Session session) {}
-
-    private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
+    private Response<Session> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
 
         HttpEntity entity = httpResponse.getEntity();
@@ -111,7 +110,7 @@ public final class BlueskySessionService {
         String entityString = EntityUtils.toString(entity);
 
         if (statusCode != HttpStatus.SC_OK) {
-            return new Response(statusCode, null);
+            return new Response<>(statusCode, null);
         }
 
         Session session;
@@ -124,13 +123,13 @@ public final class BlueskySessionService {
             throw new BlueskyException(message, e);
         }
 
-        return new Response(statusCode, session);
+        return new Response<>(statusCode, session);
     }
 
     public Session createSession() {
         HttpPost httpPost = this.buildRequest();
 
-        Response response;
+        Response<Session> response;
 
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
@@ -146,6 +145,14 @@ public final class BlueskySessionService {
             throw new BlueskyException(message);
         }
 
-        return response.session();
+        Session session = response.data();
+
+        if (session == null) {
+            String message = "Failed to create session, response body is null";
+
+            throw new BlueskyException(message);
+        }
+
+        return session;
     }
 }

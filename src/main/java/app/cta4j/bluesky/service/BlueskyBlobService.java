@@ -2,7 +2,9 @@ package app.cta4j.bluesky.service;
 
 import app.cta4j.bluesky.dto.Blob;
 import app.cta4j.bluesky.dto.Session;
+import app.cta4j.bluesky.dto.UploadBlobResponse;
 import app.cta4j.bluesky.exception.BlueskyException;
+import app.cta4j.common.dto.Response;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -79,16 +81,11 @@ public final class BlueskyBlobService {
         return httpPost;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record UploadBlobResponse(Blob blob) {}
-
-    private record Response(int statusCode, Blob blob) {}
-
-    private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
+    private Response<Blob> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
 
         if (statusCode != HttpStatus.SC_OK) {
-            return new  Response(statusCode, null);
+            return new  Response<>(statusCode, null);
         }
 
         HttpEntity entity = httpResponse.getEntity();
@@ -107,7 +104,7 @@ public final class BlueskyBlobService {
 
         Blob blob = uploadBlobResponse.blob();
 
-        return new Response(statusCode, blob);
+        return new Response<>(statusCode, blob);
     }
 
     public Blob uploadBlob(Session session, File file) {
@@ -116,7 +113,7 @@ public final class BlueskyBlobService {
 
         HttpPost httpPost = this.buildRequest(session, file);
 
-        Response response;
+        Response<Blob> response;
 
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
@@ -134,7 +131,7 @@ public final class BlueskyBlobService {
             throw new BlueskyException(message);
         }
 
-        Blob blob = response.blob();
+        Blob blob = response.data();
 
         if (blob == null) {
             String message = "Failed to upload blob, response body is null";

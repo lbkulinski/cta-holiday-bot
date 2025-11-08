@@ -1,4 +1,10 @@
 package app.cta4j.bluesky.dto;
 
-public record Record() {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
+public record Record(
+    String uri,
+    String cid
+) {
 }
