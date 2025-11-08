@@ -52,7 +52,7 @@ public final class PostService {
                                     .format(TIME_FORMAT);
 
         return String.format(
-            "%s Line train to %s will arrive at %s at %s 🎅",
+            "%s Line train to %s will be arriving at %s at %s 🎅",
             route,
             arrival.destinationName(),
             arrival.stationName(),
