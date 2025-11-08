@@ -1,7 +1,7 @@
 package app.cta4j.bluesky.service;
 
 import app.cta4j.bluesky.dto.*;
-import app.cta4j.bluesky.dto.Record;
+import app.cta4j.bluesky.dto.BlueskyRecord;
 import app.cta4j.bluesky.exception.BlueskyException;
 import app.cta4j.common.dto.Response;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -68,16 +68,26 @@ public final class BlueskyRecordService {
     private HttpEntity buildEntity(Session session, String text, Blob blob) {
         String handle = session.handle();
 
-        CreateRecordData data = new CreateRecordData(
-            text,
-            Instant.now(),
-            new Embed(
-                EMBED_TYPE,
-                List.of(
-                    new Image(IMAGE_ALT, blob)
+        CreateRecordData data;
+
+        if (blob == null) {
+            data = new CreateRecordData(
+                text,
+                Instant.now(),
+                null
+            );
+        } else {
+            data = new CreateRecordData(
+                text,
+                Instant.now(),
+                new Embed(
+                    EMBED_TYPE,
+                    List.of(
+                        new Image(IMAGE_ALT, blob)
+                    )
                 )
-            )
-        );
+            );
+        }
 
         CreateRecordRequest request = new CreateRecordRequest(handle, RECORD_COLLECTION, data);
 
@@ -88,8 +98,6 @@ public final class BlueskyRecordService {
         } catch (JsonProcessingException e) {
             throw new BlueskyException("Failed to serialize record text to JSON", e);
         }
-
-        System.out.println("requestJson: " + requestJson);
 
         ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
 
@@ -114,7 +122,7 @@ public final class BlueskyRecordService {
         return httpPost;
     }
 
-    private Response<Record> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
+    private Response<BlueskyRecord> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
 
         HttpEntity entity = httpResponse.getEntity();
@@ -125,10 +133,10 @@ public final class BlueskyRecordService {
             return new Response<>(statusCode, null);
         }
 
-        Record record;
+        BlueskyRecord record;
 
         try {
-            record = this.objectMapper.readValue(entityString, Record.class);
+            record = this.objectMapper.readValue(entityString, BlueskyRecord.class);
         }  catch (JsonProcessingException e) {
             String message = "Failed to parse create record response";
 
@@ -138,14 +146,13 @@ public final class BlueskyRecordService {
         return new Response<>(statusCode, record);
     }
 
-    public Record createRecord(Session session, String text, Blob blob) {
+    public BlueskyRecord createRecord(Session session, String text, Blob blob) {
         Objects.requireNonNull(session);
         Objects.requireNonNull(text);
-        Objects.requireNonNull(blob);
 
         HttpPost httpPost = this.buildRequest(session, text, blob);
 
-        Response<Record> response;
+        Response<BlueskyRecord> response;
 
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
@@ -161,7 +168,7 @@ public final class BlueskyRecordService {
             throw new BlueskyException(message);
         }
 
-        Record record = response.data();
+        BlueskyRecord record = response.data();
 
         if (record == null) {
             String message = "Failed to create record, response body is null";
@@ -170,5 +177,9 @@ public final class BlueskyRecordService {
         }
 
         return record;
+    }
+
+    public BlueskyRecord createRecord(Session session, String text) {
+        return this.createRecord(session, text, null);
     }
 }

@@ -17,6 +17,7 @@ import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 public final class TokenRefreshInterceptor implements HttpRequestInterceptor {
@@ -28,10 +29,13 @@ public final class TokenRefreshInterceptor implements HttpRequestInterceptor {
     private final SecretService secretService;
     private final TwitterTokenRefreshService tokenRefreshService;
 
+    private final ReentrantLock lock;
+
     @Autowired
     public TokenRefreshInterceptor(SecretService secretService, TwitterTokenRefreshService tokenRefreshService) {
         this.secretService = secretService;
         this.tokenRefreshService = tokenRefreshService;
+        this.lock = new ReentrantLock();
     }
 
     @Override
@@ -54,22 +58,28 @@ public final class TokenRefreshInterceptor implements HttpRequestInterceptor {
             return;
         }
 
-        Instant now = Instant.now();
+        this.lock.lock();
 
-        Instant expirationTime = this.secretService.getSecret()
-                                                   .twitter()
-                                                   .expirationTime();
+        try {
+            Instant now = Instant.now();
 
-        Instant thresholdTime = expirationTime.minus(REFRESH_THRESHOLD);
+            Instant expirationTime = this.secretService.getSecret()
+                                                       .twitter()
+                                                       .expirationTime();
 
-        if (!now.isAfter(thresholdTime)) {
-            return;
+            Instant thresholdTime = expirationTime.minus(REFRESH_THRESHOLD);
+
+            if (!now.isAfter(thresholdTime)) {
+                return;
+            }
+
+            String newAccessToken = this.tokenRefreshService.refreshAccessToken();
+
+            String newAuthorizationHeader = String.format("Bearer %s", newAccessToken);
+
+            httpRequest.setHeader(HttpHeaders.AUTHORIZATION, newAuthorizationHeader);
+        } finally {
+            this.lock.unlock();
         }
-
-        String newAccessToken = this.tokenRefreshService.refreshAccessToken();
-
-        String newAuthorizationHeader = String.format("Bearer %s", newAccessToken);
-
-        httpRequest.setHeader(HttpHeaders.AUTHORIZATION, newAuthorizationHeader);
     }
 }

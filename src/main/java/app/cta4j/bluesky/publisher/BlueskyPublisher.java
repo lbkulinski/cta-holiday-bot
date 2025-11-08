@@ -1,7 +1,7 @@
 package app.cta4j.bluesky.publisher;
 
 import app.cta4j.bluesky.dto.Blob;
-import app.cta4j.bluesky.dto.Record;
+import app.cta4j.bluesky.dto.BlueskyRecord;
 import app.cta4j.bluesky.dto.Session;
 import app.cta4j.bluesky.service.BlueskyBlobService;
 import app.cta4j.bluesky.service.BlueskyRecordService;
@@ -45,11 +45,19 @@ public final class BlueskyPublisher implements SocialPublisher {
     public void publish(Post post) {
         Session session = this.sessionService.createSession();
 
+        if (post.media() == null) {
+            BlueskyRecord record = this.recordService.createRecord(session, post.text());
+
+            log.info("Post without image created on Bluesky with ID {}", record.cid());
+
+            return;
+        }
+
         File media = post.media();
 
         Blob blob = this.blobService.uploadBlob(session, media);
 
-        Record record = this.recordService.createRecord(session, post.text(), blob);
+        BlueskyRecord record = this.recordService.createRecord(session, post.text(), blob);
 
         log.info("Post created on Bluesky with ID {}", record.cid());
     }

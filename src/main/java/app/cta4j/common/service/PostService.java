@@ -35,7 +35,7 @@ public final class PostService {
 
     private String toTitleCase(Route route) {
         if (route == null) {
-            return null;
+            throw new IllegalArgumentException("route is null");
         }
 
         String string = route.toString();

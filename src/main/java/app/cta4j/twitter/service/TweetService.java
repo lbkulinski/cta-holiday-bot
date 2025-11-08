@@ -1,5 +1,6 @@
 package app.cta4j.twitter.service;
 
+import app.cta4j.common.dto.Response;
 import app.cta4j.twitter.exception.TwitterException;
 import app.cta4j.common.service.SecretService;
 import app.cta4j.twitter.dto.Tweet;
@@ -120,9 +121,7 @@ public final class TweetService {
     @JsonIgnoreProperties(ignoreUnknown = true)
     private record CreateTweetResponse(Tweet data) {}
 
-    private record Response(int statusCode, Tweet tweet) {}
-
-    private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
+    private Response<Tweet> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
 
         HttpEntity entity = httpResponse.getEntity();
@@ -130,7 +129,7 @@ public final class TweetService {
         String entityString = EntityUtils.toString(entity);
 
         if (statusCode != HttpStatus.SC_CREATED) {
-            return new Response(statusCode, null);
+            return new Response<>(statusCode, null);
         }
 
         CreateTweetResponse response;
@@ -145,7 +144,7 @@ public final class TweetService {
 
         Tweet tweet = response.data();
 
-        return new Response(statusCode, tweet);
+        return new Response<>(statusCode, tweet);
     }
     
     public Tweet postTweet(String text, String mediaId) {
@@ -153,7 +152,7 @@ public final class TweetService {
 
         HttpPost httpPost = this.buildRequest(text, mediaId);
 
-        Response response;
+        Response<Tweet> response;
 
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
@@ -163,13 +162,13 @@ public final class TweetService {
             throw new TwitterException(message, e);
         }
 
-        if (response.statusCode != HttpStatus.SC_CREATED) {
-            String message = String.format("Failed to create tweet, status code: %d", response.statusCode);
+        if (response.statusCode() != HttpStatus.SC_CREATED) {
+            String message = String.format("Failed to create tweet, status code: %d", response.statusCode());
 
             throw new TwitterException(message);
         }
 
-        Tweet tweet = response.tweet();
+        Tweet tweet = response.data();
 
         if (tweet == null) {
             String message = "Failed to create tweet, response body is null";

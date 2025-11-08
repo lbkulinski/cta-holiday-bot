@@ -121,8 +121,19 @@ public final class TwitterTokenRefreshService {
         String newAccessToken = tokens.getAccessToken()
                                       .getValue();
 
-        String newRefreshToken = tokens.getRefreshToken()
-                                       .getValue();
+        RefreshToken refreshToken = tokens.getRefreshToken();
+
+        String newRefreshToken;
+
+        if (refreshToken == null) {
+            newRefreshToken = this.secretService.getSecret()
+                                                .twitter()
+                                                .refreshToken();
+        } else {
+            newRefreshToken = tokens.getRefreshToken()
+                                    .getValue();
+
+        }
 
         long lifetime = tokens.getAccessToken()
                               .getLifetime();

@@ -85,7 +85,7 @@ public final class BlueskyBlobService {
         int statusCode = httpResponse.getCode();
 
         if (statusCode != HttpStatus.SC_OK) {
-            return new  Response<>(statusCode, null);
+            return new Response<>(statusCode, null);
         }
 
         HttpEntity entity = httpResponse.getEntity();
