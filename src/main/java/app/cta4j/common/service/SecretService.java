@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueReques
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
 import software.amazon.awssdk.services.secretsmanager.model.PutSecretValueRequest;
 
+import java.time.Instant;
 import java.util.Objects;
 
 @Service
@@ -23,7 +24,7 @@ public final class SecretService {
     private final String secretId;
 
     @Getter(onMethod_ = @Synchronized)
-    private Secret secret;
+    private volatile Secret secret;
 
     @Autowired
     public SecretService(
@@ -37,8 +38,11 @@ public final class SecretService {
         this.secret = loadSecret(secretsManagerClient, objectMapper, secretId);
     }
 
-    private static Secret loadSecret(SecretsManagerClient secretsManagerClient, ObjectMapper objectMapper,
-        String secretId) {
+    private static Secret loadSecret(
+        SecretsManagerClient secretsManagerClient,
+        ObjectMapper objectMapper,
+        String secretId
+    ) {
         GetSecretValueRequest request = GetSecretValueRequest.builder()
                                                              .secretId(secretId)
                                                              .build();
@@ -60,12 +64,12 @@ public final class SecretService {
         return secret;
     }
 
-    public synchronized void setTwitterTokens(String accessToken, String refreshToken) {
+    public synchronized void setTwitterTokens(String accessToken, String refreshToken, Instant expirationTime) {
         Objects.requireNonNull(accessToken);
-
         Objects.requireNonNull(refreshToken);
+        Objects.requireNonNull(expirationTime);
 
-        Secret newSecret = this.secret.withTwitterTokens(accessToken, refreshToken);
+        Secret newSecret = this.secret.withTwitterTokens(accessToken, refreshToken, expirationTime);
 
         String secretString;
 

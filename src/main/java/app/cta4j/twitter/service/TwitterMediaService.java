@@ -12,8 +12,6 @@ import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.*;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.net.URIBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,9 +22,7 @@ import java.net.URISyntaxException;
 import java.util.Objects;
 
 @Service
-public final class MediaService {
-    private static final Logger log = LoggerFactory.getLogger(MediaService.class);
-
+public final class TwitterMediaService {
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "api.x.com";
     private static final String MEDIA_ENDPOINT = "/2/media/upload";
@@ -34,19 +30,16 @@ public final class MediaService {
     private final SecretService secretService;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final TokenRefreshService tokenRefreshService;
 
     @Autowired
-    public MediaService(
+    public TwitterMediaService(
         SecretService secretService,
         CloseableHttpClient httpClient,
-        ObjectMapper objectMapper,
-        TokenRefreshService tokenRefreshService
+        ObjectMapper objectMapper
     ) {
         this.secretService = secretService;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
-        this.tokenRefreshService = tokenRefreshService;
     }
 
     private URI buildUri() {
@@ -104,38 +97,40 @@ public final class MediaService {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    private record ResponseBody(Media data) {}
+    private record UploadMediaResponse(Media data) {}
 
-    private record Response(int statusCode, ResponseBody body) {}
+    private record Response(int statusCode, Media media) {}
 
     private Response handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
-
-        HttpEntity entity = httpResponse.getEntity();
-
-        String entityString = EntityUtils.toString(entity);
 
         if (statusCode != HttpStatus.SC_OK) {
             return new Response(statusCode, null);
         }
 
-        ResponseBody responseBody;
+        HttpEntity entity = httpResponse.getEntity();
+
+        String entityString = EntityUtils.toString(entity);
+
+        UploadMediaResponse response;
 
         try {
-            responseBody = this.objectMapper.readValue(entityString, ResponseBody.class);
+            response = this.objectMapper.readValue(entityString, UploadMediaResponse.class);
         } catch (JsonProcessingException e) {
             String message = "Failed to parse media upload response";
 
             throw new TwitterException(message, e);
         }
 
-        return new Response(statusCode, responseBody);
+        Media media = response.data();
+
+        return new Response(statusCode, media);
     }
 
-    public Media uploadMedia(File media) {
-        Objects.requireNonNull(media);
+    public Media uploadMedia(File file) {
+        Objects.requireNonNull(file);
 
-        HttpPost httpPost = this.buildRequest(media);
+        HttpPost httpPost = this.buildRequest(file);
 
         Response response;
 
@@ -149,36 +144,20 @@ public final class MediaService {
 
         int statusCode = response.statusCode();
 
-        if (statusCode == HttpStatus.SC_OK) {
-            return response.body.data;
-        } else if (statusCode != HttpStatus.SC_UNAUTHORIZED) {
+        if (statusCode != HttpStatus.SC_OK) {
             String message = String.format("Failed to upload media, status code: %d", statusCode);
 
             throw new TwitterException(message);
         }
 
-        this.tokenRefreshService.refreshAccessToken();
+        Media media = response.media();
 
-        HttpPost retryHttpPost = this.buildRequest(media);
-
-        Response retryResponse;
-
-        try {
-            retryResponse = this.httpClient.execute(retryHttpPost, this::handleResponse);
-        } catch (IOException e) {
-            String message = "Failed to execute upload media request after refreshing access token";
-
-            throw new TwitterException(message, e);
-        }
-
-        int retryStatusCode = retryResponse.statusCode();
-
-        if (retryStatusCode != HttpStatus.SC_OK) {
-            String message = String.format("Failed to upload media after retrying, status code: %d", retryStatusCode);
+        if (media == null) {
+            String message = "Failed to upload media, response body is null";
 
             throw new TwitterException(message);
         }
 
-        return retryResponse.body.data;
+        return media;
     }
 }

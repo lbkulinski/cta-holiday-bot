@@ -8,7 +8,7 @@ import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 @Configuration
 public class SecretsManagerClientConfiguration {
     @Bean
-    public SecretsManagerClient buildSecretsManagerClient() {
+    public SecretsManagerClient secretsManagerClient() {
         return SecretsManagerClient.builder()
                                    .region(Region.US_EAST_2)
                                    .build();
