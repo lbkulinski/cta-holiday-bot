@@ -1,14 +1,14 @@
 package app.cta4j.bluesky.dto;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record Blob(
-    @JsonAlias("$type")
+    @JsonProperty("$type")
     String type,
 
-    @JsonAlias("ref")
+    @JsonProperty("ref")
     Reference reference,
 
     String mimeType,
@@ -16,7 +16,7 @@ public record Blob(
     int size
 ) {
     public record Reference(
-       @JsonAlias("$link")
+       @JsonProperty("$link")
        String link
     ) {
     }

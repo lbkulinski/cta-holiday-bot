@@ -27,7 +27,7 @@ import java.util.Objects;
 public final class BlueskyRecordService {
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "bsky.social";
-    private static final String RECORD_ENDPOINT = "/xrpc/com.atproto.repo.uploadBlob";
+    private static final String RECORD_ENDPOINT = "/xrpc/com.atproto.repo.createRecord";
     private static final String RECORD_COLLECTION = "app.bsky.feed.post";
     private static final String EMBED_TYPE = "app.bsky.embed.images";
     private static final String IMAGE_ALT = "CTA Holiday Train on the tracks";
@@ -88,6 +88,8 @@ public final class BlueskyRecordService {
         } catch (JsonProcessingException e) {
             throw new BlueskyException("Failed to serialize record text to JSON", e);
         }
+
+        System.out.println("requestJson: " + requestJson);
 
         ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
 

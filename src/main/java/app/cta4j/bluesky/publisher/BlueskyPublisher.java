@@ -51,6 +51,6 @@ public final class BlueskyPublisher implements SocialPublisher {
 
         Record record = this.recordService.createRecord(session, post.text(), blob);
 
-        log.info("Publishing bluesky record: {}", record);
+        log.info("Post created on Bluesky with ID {}", record.cid());
     }
 }
