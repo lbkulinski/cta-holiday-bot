@@ -27,7 +27,7 @@ import java.util.Objects;
 public final class TweetService {
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "api.x.com";
-    private static final String CREATE_TWEET_ENDPOINT = "/2/tweets";
+    private static final String TWEET_ENDPOINT = "/2/tweets";
 
     private final SecretService secretService;
     private final CloseableHttpClient httpClient;
@@ -51,7 +51,7 @@ public final class TweetService {
             uri = new URIBuilder()
                 .setScheme(SCHEME)
                 .setHost(HOST_NAME)
-                .setPath(CREATE_TWEET_ENDPOINT)
+                .setPath(TWEET_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
             String message = "Failed to build URI for create tweet endpoint";
