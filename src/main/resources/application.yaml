@@ -4,6 +4,7 @@ spring:
 app:
   rollbar:
     environment: ${APP_ROLLBAR_ENVIRONMENT}
+    code-version: ${APP_ROLLBAR_CODE_VERSION}
   aws:
     secrets-manager:
       secret-id: ${APP_AWS_SECRETS_MANAGER_SECRET_ID}
