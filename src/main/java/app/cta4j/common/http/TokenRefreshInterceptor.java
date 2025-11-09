@@ -2,6 +2,7 @@ package app.cta4j.common.http;
 
 import app.cta4j.common.service.SecretService;
 import app.cta4j.twitter.service.TwitterTokenRefreshService;
+import com.rollbar.notifier.Rollbar;
 import org.apache.hc.core5.http.EntityDetails;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.http.HttpRequest;
@@ -28,13 +29,19 @@ public final class TokenRefreshInterceptor implements HttpRequestInterceptor {
 
     private final SecretService secretService;
     private final TwitterTokenRefreshService tokenRefreshService;
+    private final Rollbar rollbar;
 
     private final ReentrantLock lock;
 
     @Autowired
-    public TokenRefreshInterceptor(SecretService secretService, TwitterTokenRefreshService tokenRefreshService) {
+    public TokenRefreshInterceptor(
+        SecretService secretService,
+        TwitterTokenRefreshService tokenRefreshService,
+        Rollbar rollbar
+    ) {
         this.secretService = secretService;
         this.tokenRefreshService = tokenRefreshService;
+        this.rollbar = rollbar;
         this.lock = new ReentrantLock();
     }
 
@@ -48,6 +55,8 @@ public final class TokenRefreshInterceptor implements HttpRequestInterceptor {
             String message = "Failed to get URI from HTTP request";
 
             log.error(message, e);
+
+            this.rollbar.error(e, message);
 
             return;
         }

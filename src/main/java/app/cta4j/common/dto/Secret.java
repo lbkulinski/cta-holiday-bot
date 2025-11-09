@@ -2,7 +2,13 @@ package app.cta4j.common.dto;
 
 import java.time.Instant;
 
-public record Secret(TwitterSecret twitter, BlueskySecret bluesky, MapboxSecret mapbox, CtaSecret cta) {
+public record Secret(
+    TwitterSecret twitter,
+    BlueskySecret bluesky,
+    MapboxSecret mapbox,
+    CtaSecret cta,
+    RollbarSecret rollbar
+) {
     public record TwitterSecret(
         String clientId,
         String clientSecret,
@@ -11,11 +17,17 @@ public record Secret(TwitterSecret twitter, BlueskySecret bluesky, MapboxSecret 
         Instant expirationTime
     ) {}
 
-    public record BlueskySecret(String identifier, String appPassword) {}
+    public record BlueskySecret(String identifier, String appPassword) {
+    }
 
-    public record MapboxSecret(String accessToken) {}
+    public record MapboxSecret(String accessToken) {
+    }
 
-    public record CtaSecret(String trainApiKey) {}
+    public record CtaSecret(String trainApiKey) {
+    }
+
+    public record RollbarSecret(String accessToken) {
+    }
 
     public Secret withTwitterTokens(String accessToken, String refreshToken, Instant expirationTime) {
         TwitterSecret twitterSecret = new TwitterSecret(
@@ -26,6 +38,6 @@ public record Secret(TwitterSecret twitter, BlueskySecret bluesky, MapboxSecret 
             expirationTime
         );
 
-        return new Secret(twitterSecret, this.bluesky, this.mapbox, this.cta);
+        return new Secret(twitterSecret, this.bluesky, this.mapbox, this.cta, this.rollbar);
     }
 }
