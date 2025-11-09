@@ -26,6 +26,7 @@ public class RollbarConfiguration {
         @Value("${app.rollbar.code-version}") String codeVersion
     ) {
         Objects.requireNonNull(environment);
+        Objects.requireNonNull(codeVersion);
 
         String accessToken = this.secretService.getSecret()
                                                .rollbar()

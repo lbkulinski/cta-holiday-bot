@@ -15,7 +15,8 @@ public record Secret(
         String accessToken,
         String refreshToken,
         Instant expirationTime
-    ) {}
+    ) {
+    }
 
     public record BlueskySecret(String identifier, String appPassword) {
     }
