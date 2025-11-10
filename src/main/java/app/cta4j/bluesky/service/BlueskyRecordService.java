@@ -50,9 +50,7 @@ public final class BlueskyRecordService {
                 .setPath(RECORD_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for record endpoint";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to build URI for record endpoint", e);
         }
 
         return uri;
@@ -95,7 +93,7 @@ public final class BlueskyRecordService {
         try {
             requestJson = this.objectMapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
-            throw new BlueskyException("Failed to serialize record text to JSON", e);
+            throw new BlueskyException("Failed to serialize request object to JSON", e);
         }
 
         ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
@@ -137,9 +135,7 @@ public final class BlueskyRecordService {
         try {
             record = this.objectMapper.readValue(entityString, BlueskyRecord.class);
         } catch (JsonProcessingException e) {
-            String message = "Failed to parse create record response";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to parse create record response", e);
         }
 
         return new Response<>(statusCode, record);
@@ -156,9 +152,7 @@ public final class BlueskyRecordService {
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
-            String message = "Failed to execute create record request";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to execute create record request", e);
         }
 
         if (response.statusCode() != HttpStatus.SC_OK) {
@@ -170,9 +164,7 @@ public final class BlueskyRecordService {
         BlueskyRecord record = response.data();
 
         if (record == null) {
-            String message = "Failed to create record, response body is null";
-
-            throw new BlueskyException(message);
+            throw new BlueskyException("Failed to create record, response body is null");
         }
 
         return record;

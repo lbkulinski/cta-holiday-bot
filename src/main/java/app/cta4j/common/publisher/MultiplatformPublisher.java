@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 
 @Component
 public final class MultiplatformPublisher {
@@ -27,6 +28,10 @@ public final class MultiplatformPublisher {
 
     public void publish(Post post) {
         for (SocialPublisher publisher : this.socialPublishers) {
+            if (!Objects.equals(publisher.getPlatformName(), "MASTODON")) {
+                continue;
+            }
+
             try {
                 publisher.publish(post);
             } catch (Exception e) {

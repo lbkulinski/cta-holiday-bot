@@ -109,7 +109,7 @@ public final class MastodonMediaService {
         try {
             media = this.objectMapper.readValue(entityString, MastodonMedia.class);
         }  catch (JsonProcessingException e) {
-            String message = "Failed to parse media upload response";
+            String message = "Failed to parse media response";
 
             throw new MastodonException(message, e);
         }
@@ -127,17 +127,13 @@ public final class MastodonMediaService {
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
-            String message = "Failed to execute media upload request";
-
-            throw new MastodonException(message, e);
+            throw new MastodonException("Failed to execute media upload request", e);
         }
 
         MastodonMedia media = response.data();
 
         if (media == null) {
-            String message = "Failed to upload media, response body is null";
-
-            throw new MastodonException(message);
+            throw new MastodonException("Failed to upload media, response body is null");
         }
 
         return media;
