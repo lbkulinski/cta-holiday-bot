@@ -106,7 +106,7 @@ public final class MastodonMediaService {
 
         try {
             media = this.objectMapper.readValue(entityString, MastodonMedia.class);
-        }  catch (JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             throw new MastodonException("Failed to parse media response", e);
         }
 

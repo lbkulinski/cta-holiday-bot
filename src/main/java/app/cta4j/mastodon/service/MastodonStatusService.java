@@ -125,7 +125,7 @@ public final class MastodonStatusService {
 
         try {
             status = this.objectMapper.readValue(entityString, MastodonStatus.class);
-        }  catch (JsonProcessingException e) {
+        } catch (JsonProcessingException e) {
             throw new MastodonException("Failed to parse status response", e);
         }
 
@@ -142,7 +142,7 @@ public final class MastodonStatusService {
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
-            throw new MastodonException("Failed to execute media upload request", e);
+            throw new MastodonException("Failed to execute create status request", e);
         }
 
         MastodonStatus status = response.data();
