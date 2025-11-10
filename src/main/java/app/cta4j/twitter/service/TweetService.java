@@ -87,17 +87,17 @@ public final class TweetService {
             );
         }
 
-        String requestBody;
+        String requestJson;
 
         try {
-            requestBody = this.objectMapper.writeValueAsString(request);
+            requestJson = this.objectMapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
             throw new TwitterException("Failed to serialize request object to JSON", e);
         }
 
         ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
 
-        return new StringEntity(requestBody, contentType);
+        return new StringEntity(requestJson, contentType);
     }
 
     private HttpPost buildRequest(String text, String mediaId) {

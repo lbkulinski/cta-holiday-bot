@@ -1,5 +1,6 @@
 package app.cta4j.bluesky.service;
 
+import app.cta4j.bluesky.dto.CreateSessionRequest;
 import app.cta4j.bluesky.dto.Session;
 import app.cta4j.bluesky.exception.BlueskyException;
 import app.cta4j.common.dto.Response;
@@ -65,22 +66,22 @@ public final class BlueskySessionService {
         Secret.BlueskySecret blueskySecret = this.secretService.getSecret()
                                                                .bluesky();
 
-        Map<String, String> payload = Map.of(
-            "identifier", blueskySecret.identifier(),
-            "password", blueskySecret.appPassword()
+        CreateSessionRequest request = new CreateSessionRequest(
+            blueskySecret.identifier(),
+            blueskySecret.appPassword()
         );
 
-        String jsonPayload;
+        String requestJson;
 
         try {
-            jsonPayload = this.objectMapper.writeValueAsString(payload);
+            requestJson = this.objectMapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
             throw new BlueskyException("Failed to serialize session payload to JSON", e);
         }
 
         ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
 
-        return new StringEntity(jsonPayload, contentType);
+        return new StringEntity(requestJson, contentType);
     }
 
     private HttpPost buildRequest() {
