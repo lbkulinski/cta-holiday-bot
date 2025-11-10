@@ -54,9 +54,7 @@ public final class MastodonStatusService {
                                   .setPath(STATUS_ENDPOINT)
                                   .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for status endpoint";
-
-            throw new MastodonException(message, e);
+            throw new MastodonException("Failed to build URI for status endpoint", e);
         }
 
         return uri;

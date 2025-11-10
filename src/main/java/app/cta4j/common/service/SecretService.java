@@ -56,9 +56,7 @@ public final class SecretService {
         try {
             secret = objectMapper.readValue(secretString, Secret.class);
         } catch (JsonProcessingException e) {
-            String message = "Failed to parse secret JSON string from AWS Secrets Manager";
-
-            throw new IllegalStateException(message, e);
+            throw new IllegalStateException("Failed to parse secret JSON string from AWS Secrets Manager", e);
         }
 
         return secret;
@@ -76,9 +74,7 @@ public final class SecretService {
         try {
             secretString = this.objectMapper.writeValueAsString(newSecret);
         } catch (JsonProcessingException e) {
-            String message = "Failed to serialize secret to JSON string";
-
-            throw new IllegalStateException(message, e);
+            throw new IllegalStateException("Failed to serialize secret to JSON string", e);
         }
 
         PutSecretValueRequest request = PutSecretValueRequest.builder()

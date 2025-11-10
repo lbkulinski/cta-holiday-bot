@@ -51,9 +51,7 @@ public final class MapboxService {
         try {
             url = uri.toURL();
         } catch (MalformedURLException e) {
-            String message = "Failed to convert Mapbox URI to URL";
-
-            throw new MapboxException(message, e);
+            throw new MapboxException("Failed to convert Mapbox URI to URL", e);
         }
 
         File tempFile;
@@ -61,17 +59,13 @@ public final class MapboxService {
         try {
             tempFile = File.createTempFile("mapbox-", ".png");
         } catch (IOException e) {
-            String message = "Failed to create temporary file for Mapbox image";
-
-            throw new MapboxException(message, e);
+            throw new MapboxException("Failed to create temporary file for Mapbox image", e);
         }
 
         try {
             FileUtils.copyURLToFile(url, tempFile);
         } catch (IOException e) {
-            String message = "Failed to download Mapbox image to temporary file";
-
-            throw new MapboxException(message, e);
+            throw new MapboxException("Failed to download Mapbox image to temporary file", e);
         }
 
         tempFile.deleteOnExit();

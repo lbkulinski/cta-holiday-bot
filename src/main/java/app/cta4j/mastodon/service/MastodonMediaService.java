@@ -51,9 +51,7 @@ public final class MastodonMediaService {
                                   .setPath(MEDIA_ENDPOINT)
                                   .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for media endpoint";
-
-            throw new MastodonException(message, e);
+            throw new MastodonException("Failed to build URI for media endpoint", e);
         }
 
         return uri;
@@ -109,9 +107,7 @@ public final class MastodonMediaService {
         try {
             media = this.objectMapper.readValue(entityString, MastodonMedia.class);
         }  catch (JsonProcessingException e) {
-            String message = "Failed to parse media response";
-
-            throw new MastodonException(message, e);
+            throw new MastodonException("Failed to parse media response", e);
         }
 
         return new Response<>(statusCode, media);

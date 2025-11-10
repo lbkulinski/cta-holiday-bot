@@ -55,9 +55,7 @@ public final class TweetService {
                 .setPath(TWEET_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for tweet endpoint";
-
-            throw new TwitterException(message, e);
+            throw new TwitterException("Failed to build URI for tweet endpoint", e);
         }
 
         return uri;
@@ -137,9 +135,7 @@ public final class TweetService {
         try {
             response = this.objectMapper.readValue(entityString, CreateTweetResponse.class);
         } catch (JsonProcessingException e) {
-            String message = "Failed to parse create tweet response";
-
-            throw new TwitterException(message, e);
+            throw new TwitterException("Failed to parse create tweet response", e);
         }
 
         Tweet tweet = response.data();
@@ -157,9 +153,7 @@ public final class TweetService {
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
-            String message = "Failed to execute create tweet request";
-
-            throw new TwitterException(message, e);
+            throw new TwitterException("Failed to execute create tweet request", e);
         }
 
         if (response.statusCode() != HttpStatus.SC_CREATED) {
@@ -171,9 +165,7 @@ public final class TweetService {
         Tweet tweet = response.data();
 
         if (tweet == null) {
-            String message = "Failed to create tweet, response body is null";
-
-            throw new TwitterException(message);
+            throw new TwitterException("Failed to create tweet, response body is null");
         }
 
         return tweet;

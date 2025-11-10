@@ -53,9 +53,7 @@ public final class TwitterMediaService {
                 .setPath(MEDIA_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for media endpoint";
-
-            throw new TwitterException(message, e);
+            throw new TwitterException("Failed to build URI for media endpoint", e);
         }
 
         return uri;
@@ -116,9 +114,7 @@ public final class TwitterMediaService {
         try {
             response = this.objectMapper.readValue(entityString, UploadMediaResponse.class);
         } catch (JsonProcessingException e) {
-            String message = "Failed to parse media upload response";
-
-            throw new TwitterException(message, e);
+            throw new TwitterException("Failed to parse media upload response", e);
         }
 
         TwitterMedia media = response.data();
@@ -136,9 +132,7 @@ public final class TwitterMediaService {
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
-            String message = "Failed to execute media upload request";
-
-            throw new TwitterException(message, e);
+            throw new TwitterException("Failed to execute media upload request", e);
         }
 
         int statusCode = response.statusCode();
@@ -152,9 +146,7 @@ public final class TwitterMediaService {
         TwitterMedia media = response.data();
 
         if (media == null) {
-            String message = "Failed to upload media, response body is null";
-
-            throw new TwitterException(message);
+            throw new TwitterException("Failed to upload media, response body is null");
         }
 
         return media;
