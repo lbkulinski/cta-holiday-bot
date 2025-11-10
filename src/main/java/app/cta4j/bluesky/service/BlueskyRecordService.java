@@ -50,7 +50,7 @@ public final class BlueskyRecordService {
                 .setPath(RECORD_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for create record endpoint";
+            String message = "Failed to build URI for record endpoint";
 
             throw new BlueskyException(message, e);
         }
@@ -64,7 +64,7 @@ public final class BlueskyRecordService {
         return String.format("Bearer %s", accessJwt);
     }
 
-    private HttpEntity buildEntity(Session session, String text, Blob blob) {
+    private HttpEntity buildEntity(Session session, String text, BlueskyBlob blob) {
         String handle = session.handle();
 
         CreateRecordData data;
@@ -103,7 +103,7 @@ public final class BlueskyRecordService {
         return new StringEntity(requestJson, contentType);
     }
 
-    private HttpPost buildRequest(Session session, String text, Blob blob) {
+    private HttpPost buildRequest(Session session, String text, BlueskyBlob blob) {
         URI uri = this.buildUri();
 
         HttpPost httpPost = new HttpPost(uri);
@@ -114,9 +114,9 @@ public final class BlueskyRecordService {
 
         httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON);
 
-        HttpEntity httpEntity = this.buildEntity(session, text, blob);
+        HttpEntity entity = this.buildEntity(session, text, blob);
 
-        httpPost.setEntity(httpEntity);
+        httpPost.setEntity(entity);
 
         return httpPost;
     }
@@ -145,7 +145,7 @@ public final class BlueskyRecordService {
         return new Response<>(statusCode, record);
     }
 
-    public BlueskyRecord createRecord(Session session, String text, Blob blob) {
+    public BlueskyRecord createRecord(Session session, String text, BlueskyBlob blob) {
         Objects.requireNonNull(session);
         Objects.requireNonNull(text);
 

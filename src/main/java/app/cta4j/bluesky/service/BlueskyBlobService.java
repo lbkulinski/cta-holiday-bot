@@ -1,11 +1,10 @@
 package app.cta4j.bluesky.service;
 
-import app.cta4j.bluesky.dto.Blob;
+import app.cta4j.bluesky.dto.BlueskyBlob;
 import app.cta4j.bluesky.dto.Session;
 import app.cta4j.bluesky.dto.UploadBlobResponse;
 import app.cta4j.bluesky.exception.BlueskyException;
 import app.cta4j.common.dto.Response;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -81,7 +80,7 @@ public final class BlueskyBlobService {
         return httpPost;
     }
 
-    private Response<Blob> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
+    private Response<BlueskyBlob> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
 
         if (statusCode != HttpStatus.SC_OK) {
@@ -102,18 +101,18 @@ public final class BlueskyBlobService {
             throw new BlueskyException(message, e);
         }
 
-        Blob blob = uploadBlobResponse.blob();
+        BlueskyBlob blob = uploadBlobResponse.blob();
 
         return new Response<>(statusCode, blob);
     }
 
-    public Blob uploadBlob(Session session, File file) {
+    public BlueskyBlob uploadBlob(Session session, File file) {
         Objects.requireNonNull(session);
         Objects.requireNonNull(file);
 
         HttpPost httpPost = this.buildRequest(session, file);
 
-        Response<Blob> response;
+        Response<BlueskyBlob> response;
 
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
@@ -131,7 +130,7 @@ public final class BlueskyBlobService {
             throw new BlueskyException(message);
         }
 
-        Blob blob = response.data();
+        BlueskyBlob blob = response.data();
 
         if (blob == null) {
             String message = "Failed to upload blob, response body is null";

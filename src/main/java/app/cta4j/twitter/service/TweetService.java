@@ -55,7 +55,7 @@ public final class TweetService {
                 .setPath(TWEET_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for create tweet endpoint";
+            String message = "Failed to build URI for tweet endpoint";
 
             throw new TwitterException(message, e);
         }
@@ -71,7 +71,7 @@ public final class TweetService {
         return String.format("Bearer %s", accessToken);
     }
 
-    private StringEntity buildStringEntity(String text, String mediaId) {
+    private HttpEntity buildEntity(String text, String mediaId) {
         Map<String, ?> requestMap;
 
         if (mediaId == null) {
@@ -111,9 +111,9 @@ public final class TweetService {
 
         httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON);
 
-        StringEntity stringEntity = this.buildStringEntity(text, mediaId);
+        HttpEntity entity = this.buildEntity(text, mediaId);
 
-        httpPost.setEntity(stringEntity);
+        httpPost.setEntity(entity);
         
         return httpPost;
     }

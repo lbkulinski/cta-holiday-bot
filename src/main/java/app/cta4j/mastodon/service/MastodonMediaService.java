@@ -1,10 +1,9 @@
-package app.cta4j.twitter.service;
+package app.cta4j.mastodon.service;
 
 import app.cta4j.common.dto.Response;
 import app.cta4j.common.service.SecretService;
-import app.cta4j.twitter.dto.TwitterMedia;
-import app.cta4j.twitter.exception.TwitterException;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import app.cta4j.mastodon.dto.MastodonMedia;
+import app.cta4j.mastodon.exception.MastodonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -23,17 +22,17 @@ import java.net.URISyntaxException;
 import java.util.Objects;
 
 @Service
-public final class TwitterMediaService {
+public final class MastodonMediaService {
     private static final String SCHEME = "https";
-    private static final String HOST_NAME = "api.x.com";
-    private static final String MEDIA_ENDPOINT = "/2/media/upload";
+    private static final String HOST_NAME = "mastodon.social";
+    private static final String MEDIA_ENDPOINT = "/api/v2/media";
 
     private final SecretService secretService;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public TwitterMediaService(
+    public MastodonMediaService(
         SecretService secretService,
         CloseableHttpClient httpClient,
         ObjectMapper objectMapper
@@ -47,15 +46,14 @@ public final class TwitterMediaService {
         URI uri;
 
         try {
-            uri = new URIBuilder()
-                .setScheme(SCHEME)
-                .setHost(HOST_NAME)
-                .setPath(MEDIA_ENDPOINT)
-                .build();
+            uri = new URIBuilder().setScheme(SCHEME)
+                                  .setHost(HOST_NAME)
+                                  .setPath(MEDIA_ENDPOINT)
+                                  .build();
         } catch (URISyntaxException e) {
             String message = "Failed to build URI for media endpoint";
 
-            throw new TwitterException(message, e);
+            throw new MastodonException(message, e);
         }
 
         return uri;
@@ -63,7 +61,7 @@ public final class TwitterMediaService {
 
     private String buildAuthorizationHeader() {
         String accessToken = this.secretService.getSecret()
-                                               .twitter()
+                                               .mastodon()
                                                .accessToken();
 
         return String.format("Bearer %s", accessToken);
@@ -73,9 +71,7 @@ public final class TwitterMediaService {
         String filename = file.getName();
 
         return MultipartEntityBuilder.create()
-                                     .addBinaryBody("media", file, ContentType.IMAGE_PNG, filename)
-                                     .addTextBody("media_category", "tweet_image", ContentType.TEXT_PLAIN)
-                                     .addTextBody("media_type", "image/png", ContentType.TEXT_PLAIN)
+                                     .addBinaryBody("file", file, ContentType.IMAGE_PNG, filename)
                                      .build();
     }
 
@@ -97,13 +93,10 @@ public final class TwitterMediaService {
         return httpPost;
     }
 
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record UploadMediaResponse(TwitterMedia data) {}
-
-    private Response<TwitterMedia> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
+    private Response<MastodonMedia> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
 
-        if (statusCode != HttpStatus.SC_OK) {
+        if ((statusCode != HttpStatus.SC_OK) && (statusCode != HttpStatus.SC_ACCEPTED)) {
             return new Response<>(statusCode, null);
         }
 
@@ -111,50 +104,40 @@ public final class TwitterMediaService {
 
         String entityString = EntityUtils.toString(entity);
 
-        UploadMediaResponse response;
+        MastodonMedia media;
 
         try {
-            response = this.objectMapper.readValue(entityString, UploadMediaResponse.class);
-        } catch (JsonProcessingException e) {
+            media = this.objectMapper.readValue(entityString, MastodonMedia.class);
+        }  catch (JsonProcessingException e) {
             String message = "Failed to parse media upload response";
 
-            throw new TwitterException(message, e);
+            throw new MastodonException(message, e);
         }
-
-        TwitterMedia media = response.data();
 
         return new Response<>(statusCode, media);
     }
 
-    public TwitterMedia uploadMedia(File file) {
+    public MastodonMedia uploadMedia(File file) {
         Objects.requireNonNull(file);
 
         HttpPost httpPost = this.buildRequest(file);
 
-        Response<TwitterMedia> response;
+        Response<MastodonMedia> response;
 
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
             String message = "Failed to execute media upload request";
 
-            throw new TwitterException(message, e);
+            throw new MastodonException(message, e);
         }
 
-        int statusCode = response.statusCode();
-
-        if (statusCode != HttpStatus.SC_OK) {
-            String message = String.format("Failed to upload media, status code: %d", statusCode);
-
-            throw new TwitterException(message);
-        }
-
-        TwitterMedia media = response.data();
+        MastodonMedia media = response.data();
 
         if (media == null) {
             String message = "Failed to upload media, response body is null";
 
-            throw new TwitterException(message);
+            throw new MastodonException(message);
         }
 
         return media;

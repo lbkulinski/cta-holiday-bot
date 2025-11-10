@@ -26,13 +26,11 @@ import java.util.Map;
 
 @Service
 public final class BlueskySessionService {
-    private static final Logger log = LoggerFactory.getLogger(BlueskySessionService.class);
-
     private static final String SCHEME = "https";
     private static final String HOST_NAME = "bsky.social";
     private static final String SESSION_ENDPOINT = "/xrpc/com.atproto.server.createSession";
 
-    private final Secret secret;
+    private final SecretService secretService;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
 
@@ -42,7 +40,7 @@ public final class BlueskySessionService {
         CloseableHttpClient httpClient,
         ObjectMapper objectMapper
     ) {
-        this.secret = secretService.getSecret();
+        this.secretService = secretService;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
@@ -65,8 +63,9 @@ public final class BlueskySessionService {
         return uri;
     }
 
-    private StringEntity buildEntity() {
-        Secret.BlueskySecret blueskySecret = this.secret.bluesky();
+    private HttpEntity buildEntity() {
+        Secret.BlueskySecret blueskySecret = this.secretService.getSecret()
+                                                               .bluesky();
 
         Map<String, String> payload = Map.of(
             "identifier", blueskySecret.identifier(),
@@ -95,7 +94,7 @@ public final class BlueskySessionService {
 
         httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON);
 
-        StringEntity entity = this.buildEntity();
+        HttpEntity entity = this.buildEntity();
 
         httpPost.setEntity(entity);
 

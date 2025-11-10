@@ -1,7 +1,7 @@
-package app.cta4j.bluesky.dto;
+package app.cta4j.mastodon.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record UploadBlobResponse(BlueskyBlob blob) {
+public record MastodonStatus(String id, String content) {
 }
