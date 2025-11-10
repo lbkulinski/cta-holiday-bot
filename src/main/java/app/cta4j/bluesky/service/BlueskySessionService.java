@@ -55,9 +55,7 @@ public final class BlueskySessionService {
                 .setPath(SESSION_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for session endpoint";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to build URI for session endpoint", e);
         }
 
         return uri;
@@ -77,9 +75,7 @@ public final class BlueskySessionService {
         try {
             jsonPayload = this.objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException e) {
-            String message = "Failed to serialize session payload to JSON";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to serialize session payload to JSON", e);
         }
 
         ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
@@ -117,9 +113,7 @@ public final class BlueskySessionService {
         try {
             session = this.objectMapper.readValue(entityString, Session.class);
         } catch (JsonProcessingException e) {
-            String message = "Failed to parse create session response";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to parse create session response", e);
         }
 
         return new Response<>(statusCode, session);
@@ -133,9 +127,7 @@ public final class BlueskySessionService {
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
-            String message = "Failed to execute create session request";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to execute create session request", e);
         }
 
         if (response.statusCode() != HttpStatus.SC_OK) {
@@ -147,9 +139,7 @@ public final class BlueskySessionService {
         Session session = response.data();
 
         if (session == null) {
-            String message = "Failed to create session, response body is null";
-
-            throw new BlueskyException(message);
+            throw new BlueskyException("Failed to create session, response body is null");
         }
 
         return session;

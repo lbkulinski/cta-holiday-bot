@@ -43,9 +43,7 @@ public final class TwitterTokenRefreshService {
                 .setPath(OAUTH_TOKEN_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for token refresh endpoint";
-
-            throw new TwitterException(message, e);
+            throw new TwitterException("Failed to build URI for token refresh endpoint", e);
         }
 
         return uri;
@@ -93,9 +91,7 @@ public final class TwitterTokenRefreshService {
             response = request.toHTTPRequest()
                               .send();
         } catch (IOException e) {
-            String message = "Failed to send token refresh request";
-
-            throw new TwitterException(message, e);
+            throw new TwitterException("Failed to send token refresh request", e);
         }
 
         TokenResponse tokenResponse;
@@ -103,15 +99,11 @@ public final class TwitterTokenRefreshService {
         try {
             tokenResponse = TokenResponse.parse(response);
         } catch (ParseException e) {
-            String message = "Failed to parse token refresh response";
-
-            throw new TwitterException(message, e);
+            throw new TwitterException("Failed to parse token refresh response", e);
         }
 
         if (!tokenResponse.indicatesSuccess()) {
-            String message = "Token refresh request was not successful";
-
-            throw new TwitterException(message);
+            throw new TwitterException("Token refresh request was not successful");
         }
 
         AccessTokenResponse successResponse = tokenResponse.toSuccessResponse();

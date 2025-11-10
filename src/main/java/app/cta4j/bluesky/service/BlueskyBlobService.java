@@ -48,9 +48,7 @@ public final class BlueskyBlobService {
                 .setPath(BLOB_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for blob endpoint";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to build URI for blob endpoint", e);
         }
 
         return uri;
@@ -96,9 +94,7 @@ public final class BlueskyBlobService {
         try {
             uploadBlobResponse = this.objectMapper.readValue(entityString, UploadBlobResponse.class);
         } catch (JsonProcessingException e) {
-            String message = "Failed to parse upload blob response";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to parse upload blob response", e);
         }
 
         BlueskyBlob blob = uploadBlobResponse.blob();
@@ -117,9 +113,7 @@ public final class BlueskyBlobService {
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
-            String message = "Failed to execute blob upload request";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to execute blob upload request", e);
         }
 
         int statusCode = response.statusCode();
@@ -133,9 +127,7 @@ public final class BlueskyBlobService {
         BlueskyBlob blob = response.data();
 
         if (blob == null) {
-            String message = "Failed to upload blob, response body is null";
-
-            throw new BlueskyException(message);
+            throw new BlueskyException("Failed to upload blob, response body is null");
         }
 
         return blob;
