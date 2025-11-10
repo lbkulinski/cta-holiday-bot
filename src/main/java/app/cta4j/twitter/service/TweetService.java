@@ -7,7 +7,6 @@ import app.cta4j.twitter.dto.CreateTweetResponse;
 import app.cta4j.twitter.exception.TwitterException;
 import app.cta4j.common.service.SecretService;
 import app.cta4j.twitter.dto.Tweet;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -23,9 +22,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @Service

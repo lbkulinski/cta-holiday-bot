@@ -5,7 +5,6 @@ import app.cta4j.common.service.SecretService;
 import app.cta4j.twitter.dto.TwitterMedia;
 import app.cta4j.twitter.dto.UploadMediaResponse;
 import app.cta4j.twitter.exception.TwitterException;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
