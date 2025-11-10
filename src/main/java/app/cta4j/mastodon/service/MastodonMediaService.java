@@ -126,6 +126,14 @@ public final class MastodonMediaService {
             throw new MastodonException("Failed to execute media upload request", e);
         }
 
+        int statusCode = response.statusCode();
+
+        if ((statusCode != HttpStatus.SC_OK) && (statusCode != HttpStatus.SC_ACCEPTED)) {
+            String message = String.format("Failed to upload media, status code: %d", statusCode);
+
+            throw new MastodonException(message);
+        }
+
         MastodonMedia media = response.data();
 
         if (media == null) {

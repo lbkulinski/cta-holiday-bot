@@ -144,6 +144,14 @@ public final class MastodonStatusService {
             throw new MastodonException("Failed to execute create status request", e);
         }
 
+        int statusCode = response.statusCode();
+
+        if (statusCode != HttpStatus.SC_OK) {
+            String message = String.format("Failed to upload media, status code: %d", statusCode);
+
+            throw new MastodonException(message);
+        }
+
         MastodonStatus status = response.data();
 
         if (status == null) {
