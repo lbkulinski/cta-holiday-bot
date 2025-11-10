@@ -1,7 +1,10 @@
 package app.cta4j.common.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.time.Instant;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public record Secret(
     TwitterSecret twitter,
     BlueskySecret bluesky,
