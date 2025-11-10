@@ -147,7 +147,7 @@ public final class MastodonStatusService {
         int statusCode = response.statusCode();
 
         if (statusCode != HttpStatus.SC_OK) {
-            String message = String.format("Failed to upload media, status code: %d", statusCode);
+            String message = String.format("Failed to create status, status code: %d", statusCode);
 
             throw new MastodonException(message);
         }
