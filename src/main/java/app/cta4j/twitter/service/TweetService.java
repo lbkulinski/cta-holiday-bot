@@ -1,6 +1,9 @@
 package app.cta4j.twitter.service;
 
 import app.cta4j.common.dto.Response;
+import app.cta4j.twitter.dto.CreateTweetMedia;
+import app.cta4j.twitter.dto.CreateTweetRequest;
+import app.cta4j.twitter.dto.CreateTweetResponse;
 import app.cta4j.twitter.exception.TwitterException;
 import app.cta4j.common.service.SecretService;
 import app.cta4j.twitter.dto.Tweet;
@@ -21,6 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -70,17 +74,15 @@ public final class TweetService {
     }
 
     private HttpEntity buildEntity(String text, String mediaId) {
-        Map<String, ?> requestMap;
+        CreateTweetRequest request;
 
         if (mediaId == null) {
-            requestMap = Map.of(
-                "text", text
-            );
+            request = new CreateTweetRequest(text, null);
         } else {
-            requestMap = Map.of(
-                "text", text,
-                "media", Map.of(
-                    "media_ids", Collections.singletonList(mediaId)
+            request = new CreateTweetRequest(
+                text,
+                new CreateTweetMedia(
+                    List.of(mediaId)
                 )
             );
         }
@@ -88,9 +90,9 @@ public final class TweetService {
         String requestBody;
 
         try {
-            requestBody = this.objectMapper.writeValueAsString(requestMap);
+            requestBody = this.objectMapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
-            throw new TwitterException("Failed to serialize tweet text to JSON", e);
+            throw new TwitterException("Failed to serialize request object to JSON", e);
         }
 
         ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
@@ -115,9 +117,6 @@ public final class TweetService {
         
         return httpPost;
     }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record CreateTweetResponse(Tweet data) {}
 
     private Response<Tweet> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();

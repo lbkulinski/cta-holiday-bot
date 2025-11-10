@@ -3,6 +3,7 @@ package app.cta4j.twitter.service;
 import app.cta4j.common.dto.Response;
 import app.cta4j.common.service.SecretService;
 import app.cta4j.twitter.dto.TwitterMedia;
+import app.cta4j.twitter.dto.UploadMediaResponse;
 import app.cta4j.twitter.exception.TwitterException;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -94,9 +95,6 @@ public final class TwitterMediaService {
 
         return httpPost;
     }
-
-    @JsonIgnoreProperties(ignoreUnknown = true)
-    private record UploadMediaResponse(TwitterMedia data) {}
 
     private Response<TwitterMedia> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
