@@ -50,7 +50,7 @@ public final class BlueskyRecordService {
                 .setPath(RECORD_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            throw new BlueskyException("Failed to build URI for record endpoint", e);
+            throw new BlueskyException("Failed to build URI for create record endpoint", e);
         }
 
         return uri;
