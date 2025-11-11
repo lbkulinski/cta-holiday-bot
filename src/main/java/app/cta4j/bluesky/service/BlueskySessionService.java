@@ -128,16 +128,12 @@ public final class BlueskySessionService {
             throw new BlueskyException("Failed to execute create session request", e);
         }
 
-        if (response.statusCode() != HttpStatus.SC_OK) {
-            String message = String.format("Failed to create session, status code: %d", response.statusCode());
-
-            throw new BlueskyException(message);
-        }
-
         Session session = response.data();
 
         if (session == null) {
-            throw new BlueskyException("Failed to create session, response body is null");
+            String message = String.format("Failed to create session, status code: %d", response.statusCode());
+
+            throw new BlueskyException(message);
         }
 
         return session;

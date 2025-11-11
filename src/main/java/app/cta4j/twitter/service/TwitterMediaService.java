@@ -132,18 +132,12 @@ public final class TwitterMediaService {
             throw new TwitterException("Failed to execute media upload request", e);
         }
 
-        int statusCode = response.statusCode();
-
-        if (statusCode != HttpStatus.SC_OK) {
-            String message = String.format("Failed to upload media, status code: %d", statusCode);
-
-            throw new TwitterException(message);
-        }
-
         TwitterMedia media = response.data();
 
         if (media == null) {
-            throw new TwitterException("Failed to upload media, response body is null");
+            String message = String.format("Failed to upload media, status code: %d", response.statusCode());
+
+            throw new TwitterException(message);
         }
 
         return media;

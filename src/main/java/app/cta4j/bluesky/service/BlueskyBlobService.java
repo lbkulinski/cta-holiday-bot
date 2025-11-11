@@ -116,18 +116,12 @@ public final class BlueskyBlobService {
             throw new BlueskyException("Failed to execute blob upload request", e);
         }
 
-        int statusCode = response.statusCode();
-
-        if (statusCode != HttpStatus.SC_OK) {
-            String message = String.format("Failed to upload blob, status code: %d", statusCode);
-
-            throw new BlueskyException(message);
-        }
-
         BlueskyBlob blob = response.data();
 
         if (blob == null) {
-            throw new BlueskyException("Failed to upload blob, response body is null");
+            String message = String.format("Failed to upload blob, status code: %d", response.statusCode());
+
+            throw new BlueskyException(message);
         }
 
         return blob;

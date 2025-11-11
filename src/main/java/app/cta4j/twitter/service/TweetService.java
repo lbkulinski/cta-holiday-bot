@@ -56,7 +56,7 @@ public final class TweetService {
                 .setPath(TWEET_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            throw new TwitterException("Failed to build URI for tweet endpoint", e);
+            throw new TwitterException("Failed to build URI for create tweet endpoint", e);
         }
 
         return uri;
@@ -152,16 +152,12 @@ public final class TweetService {
             throw new TwitterException("Failed to execute create tweet request", e);
         }
 
-        if (response.statusCode() != HttpStatus.SC_CREATED) {
-            String message = String.format("Failed to create tweet, status code: %d", response.statusCode());
-
-            throw new TwitterException(message);
-        }
-
         Tweet tweet = response.data();
 
         if (tweet == null) {
-            throw new TwitterException("Failed to create tweet, response body is null");
+            String message = String.format("Failed to create tweet, status code: %d", response.statusCode());
+
+            throw new TwitterException(message);
         }
 
         return tweet;

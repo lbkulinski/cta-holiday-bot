@@ -144,18 +144,12 @@ public final class MastodonStatusService {
             throw new MastodonException("Failed to execute create status request", e);
         }
 
-        int statusCode = response.statusCode();
-
-        if (statusCode != HttpStatus.SC_OK) {
-            String message = String.format("Failed to create status, status code: %d", statusCode);
-
-            throw new MastodonException(message);
-        }
-
         MastodonStatus status = response.data();
 
         if (status == null) {
-            throw new MastodonException("Failed to create status, response body is null");
+            String message = String.format("Failed to create status, status code: %d", response.statusCode());
+
+            throw new MastodonException(message);
         }
 
         return status;

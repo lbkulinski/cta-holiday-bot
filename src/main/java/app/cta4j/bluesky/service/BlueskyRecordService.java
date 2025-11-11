@@ -155,16 +155,12 @@ public final class BlueskyRecordService {
             throw new BlueskyException("Failed to execute create record request", e);
         }
 
-        if (response.statusCode() != HttpStatus.SC_OK) {
-            String message = String.format("Failed to create record, status code: %d", response.statusCode());
-
-            throw new BlueskyException(message);
-        }
-
         BlueskyRecord record = response.data();
 
         if (record == null) {
-            throw new BlueskyException("Failed to create record, response body is null");
+            String message = String.format("Failed to create record, status code: %d", response.statusCode());
+
+            throw new BlueskyException(message);
         }
 
         return record;
