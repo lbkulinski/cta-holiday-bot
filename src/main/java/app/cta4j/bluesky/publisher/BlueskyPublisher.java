@@ -1,6 +1,6 @@
 package app.cta4j.bluesky.publisher;
 
-import app.cta4j.bluesky.dto.Blob;
+import app.cta4j.bluesky.dto.BlueskyBlob;
 import app.cta4j.bluesky.dto.BlueskyRecord;
 import app.cta4j.bluesky.dto.Session;
 import app.cta4j.bluesky.service.BlueskyBlobService;
@@ -55,7 +55,7 @@ public final class BlueskyPublisher implements SocialPublisher {
 
         File media = post.media();
 
-        Blob blob = this.blobService.uploadBlob(session, media);
+        BlueskyBlob blob = this.blobService.uploadBlob(session, media);
 
         BlueskyRecord record = this.recordService.createRecord(session, post.text(), blob);
 

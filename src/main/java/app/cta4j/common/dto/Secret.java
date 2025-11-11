@@ -8,6 +8,7 @@ import java.time.Instant;
 public record Secret(
     TwitterSecret twitter,
     BlueskySecret bluesky,
+    MastodonSecret mastodon,
     MapboxSecret mapbox,
     CtaSecret cta,
     RollbarSecret rollbar
@@ -22,6 +23,9 @@ public record Secret(
     }
 
     public record BlueskySecret(String identifier, String appPassword) {
+    }
+
+    public record MastodonSecret(String accessToken) {
     }
 
     public record MapboxSecret(String accessToken) {
@@ -42,6 +46,6 @@ public record Secret(
             expirationTime
         );
 
-        return new Secret(twitterSecret, this.bluesky, this.mapbox, this.cta, this.rollbar);
+        return new Secret(twitterSecret, this.bluesky, this.mastodon, this.mapbox, this.cta, this.rollbar);
     }
 }

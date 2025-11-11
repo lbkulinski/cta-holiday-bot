@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 @Configuration

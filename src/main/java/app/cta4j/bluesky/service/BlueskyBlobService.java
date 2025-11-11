@@ -1,11 +1,10 @@
 package app.cta4j.bluesky.service;
 
-import app.cta4j.bluesky.dto.Blob;
+import app.cta4j.bluesky.dto.BlueskyBlob;
 import app.cta4j.bluesky.dto.Session;
 import app.cta4j.bluesky.dto.UploadBlobResponse;
 import app.cta4j.bluesky.exception.BlueskyException;
 import app.cta4j.common.dto.Response;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -49,9 +48,7 @@ public final class BlueskyBlobService {
                 .setPath(BLOB_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for blob endpoint";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to build URI for blob endpoint", e);
         }
 
         return uri;
@@ -81,7 +78,7 @@ public final class BlueskyBlobService {
         return httpPost;
     }
 
-    private Response<Blob> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
+    private Response<BlueskyBlob> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
 
         if (statusCode != HttpStatus.SC_OK) {
@@ -97,44 +94,32 @@ public final class BlueskyBlobService {
         try {
             uploadBlobResponse = this.objectMapper.readValue(entityString, UploadBlobResponse.class);
         } catch (JsonProcessingException e) {
-            String message = "Failed to parse upload blob response";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to parse upload blob response", e);
         }
 
-        Blob blob = uploadBlobResponse.blob();
+        BlueskyBlob blob = uploadBlobResponse.blob();
 
         return new Response<>(statusCode, blob);
     }
 
-    public Blob uploadBlob(Session session, File file) {
+    public BlueskyBlob uploadBlob(Session session, File file) {
         Objects.requireNonNull(session);
         Objects.requireNonNull(file);
 
         HttpPost httpPost = this.buildRequest(session, file);
 
-        Response<Blob> response;
+        Response<BlueskyBlob> response;
 
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
-            String message = "Failed to execute blob upload request";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to execute blob upload request", e);
         }
 
-        int statusCode = response.statusCode();
-
-        if (statusCode != HttpStatus.SC_OK) {
-            String message = String.format("Failed to upload blob, status code: %d", statusCode);
-
-            throw new BlueskyException(message);
-        }
-
-        Blob blob = response.data();
+        BlueskyBlob blob = response.data();
 
         if (blob == null) {
-            String message = "Failed to upload blob, response body is null";
+            String message = String.format("Failed to upload blob, status code: %d", response.statusCode());
 
             throw new BlueskyException(message);
         }

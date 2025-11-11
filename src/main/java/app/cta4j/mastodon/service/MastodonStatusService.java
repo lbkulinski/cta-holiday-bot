@@ -1,12 +1,10 @@
-package app.cta4j.twitter.service;
+package app.cta4j.mastodon.service;
 
 import app.cta4j.common.dto.Response;
-import app.cta4j.twitter.dto.CreateTweetMedia;
-import app.cta4j.twitter.dto.CreateTweetRequest;
-import app.cta4j.twitter.dto.CreateTweetResponse;
-import app.cta4j.twitter.exception.TwitterException;
 import app.cta4j.common.service.SecretService;
-import app.cta4j.twitter.dto.Tweet;
+import app.cta4j.mastodon.dto.CreateStatusRequest;
+import app.cta4j.mastodon.dto.MastodonStatus;
+import app.cta4j.mastodon.exception.MastodonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -26,17 +24,17 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
-public final class TweetService {
+public final class MastodonStatusService {
     private static final String SCHEME = "https";
-    private static final String HOST_NAME = "api.x.com";
-    private static final String TWEET_ENDPOINT = "/2/tweets";
+    private static final String HOST_NAME = "mastodon.social";
+    private static final String STATUS_ENDPOINT = "/api/v1/statuses";
 
     private final SecretService secretService;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     @Autowired
-    public TweetService(
+    public MastodonStatusService(
         SecretService secretService,
         CloseableHttpClient httpClient,
         ObjectMapper objectMapper
@@ -50,13 +48,12 @@ public final class TweetService {
         URI uri;
 
         try {
-            uri = new URIBuilder()
-                .setScheme(SCHEME)
-                .setHost(HOST_NAME)
-                .setPath(TWEET_ENDPOINT)
-                .build();
+            uri = new URIBuilder().setScheme(SCHEME)
+                                  .setHost(HOST_NAME)
+                                  .setPath(STATUS_ENDPOINT)
+                                  .build();
         } catch (URISyntaxException e) {
-            throw new TwitterException("Failed to build URI for create tweet endpoint", e);
+            throw new MastodonException("Failed to build URI for status endpoint", e);
         }
 
         return uri;
@@ -64,24 +61,21 @@ public final class TweetService {
 
     private String buildAuthorizationHeader() {
         String accessToken = this.secretService.getSecret()
-                                               .twitter()
+                                               .mastodon()
                                                .accessToken();
 
         return String.format("Bearer %s", accessToken);
     }
 
     private HttpEntity buildEntity(String text, String mediaId) {
-        CreateTweetRequest request;
+        CreateStatusRequest request;
 
         if (mediaId == null) {
-            request = new CreateTweetRequest(text, null);
+            request = new CreateStatusRequest(text, null);
         } else {
-            request = new CreateTweetRequest(
-                text,
-                new CreateTweetMedia(
-                    List.of(mediaId)
-                )
-            );
+            List<String> mediaIds = List.of(mediaId);
+
+            request = new CreateStatusRequest(text, mediaIds);
         }
 
         String requestJson;
@@ -89,7 +83,7 @@ public final class TweetService {
         try {
             requestJson = this.objectMapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
-            throw new TwitterException("Failed to serialize request object to JSON", e);
+            throw new MastodonException("Failed to serialize request object to JSON", e);
         }
 
         ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
@@ -111,59 +105,57 @@ public final class TweetService {
         HttpEntity entity = this.buildEntity(text, mediaId);
 
         httpPost.setEntity(entity);
-        
+
         return httpPost;
     }
 
-    private Response<Tweet> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
+    private Response<MastodonStatus> handleResponse(ClassicHttpResponse httpResponse) throws IOException, ParseException {
         int statusCode = httpResponse.getCode();
+
+        if (statusCode != HttpStatus.SC_OK) {
+            return new Response<>(statusCode, null);
+        }
 
         HttpEntity entity = httpResponse.getEntity();
 
         String entityString = EntityUtils.toString(entity);
 
-        if (statusCode != HttpStatus.SC_CREATED) {
-            return new Response<>(statusCode, null);
-        }
-
-        CreateTweetResponse response;
+        MastodonStatus status;
 
         try {
-            response = this.objectMapper.readValue(entityString, CreateTweetResponse.class);
+            status = this.objectMapper.readValue(entityString, MastodonStatus.class);
         } catch (JsonProcessingException e) {
-            throw new TwitterException("Failed to parse create tweet response", e);
+            throw new MastodonException("Failed to parse status response", e);
         }
 
-        Tweet tweet = response.data();
-
-        return new Response<>(statusCode, tweet);
+        return new Response<>(statusCode, status);
     }
-    
-    public Tweet postTweet(String text, String mediaId) {
+
+    public MastodonStatus postStatus(String text, String mediaId) {
         Objects.requireNonNull(text);
 
         HttpPost httpPost = this.buildRequest(text, mediaId);
 
-        Response<Tweet> response;
+        Response<MastodonStatus> response;
 
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
-            throw new TwitterException("Failed to execute create tweet request", e);
+            throw new MastodonException("Failed to execute create status request", e);
         }
 
-        Tweet tweet = response.data();
+        MastodonStatus status = response.data();
 
-        if (tweet == null) {
-            String message = String.format("Failed to create tweet, status code: %d", response.statusCode());
+        if (status == null) {
+            String message = String.format("Failed to create status, status code: %d", response.statusCode());
 
-            throw new TwitterException(message);
+            throw new MastodonException(message);
         }
 
-        return tweet;
+        return status;
     }
 
-    public Tweet postTweet(String text) {
-        return this.postTweet(text, null);
+    public MastodonStatus postStatus(String text) {
+        return this.postStatus(text, null);
     }
 }

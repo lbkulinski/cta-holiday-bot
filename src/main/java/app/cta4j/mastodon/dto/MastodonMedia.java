@@ -1,7 +1,7 @@
-package app.cta4j.twitter.dto;
+package app.cta4j.mastodon.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public record Tweet(String id, String text) {
+public record MastodonMedia(String id) {
 }

@@ -50,9 +50,7 @@ public final class BlueskyRecordService {
                 .setPath(RECORD_ENDPOINT)
                 .build();
         } catch (URISyntaxException e) {
-            String message = "Failed to build URI for create record endpoint";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to build URI for create record endpoint", e);
         }
 
         return uri;
@@ -64,7 +62,7 @@ public final class BlueskyRecordService {
         return String.format("Bearer %s", accessJwt);
     }
 
-    private HttpEntity buildEntity(Session session, String text, Blob blob) {
+    private HttpEntity buildEntity(Session session, String text, BlueskyBlob blob) {
         String handle = session.handle();
 
         CreateRecordData data;
@@ -95,7 +93,7 @@ public final class BlueskyRecordService {
         try {
             requestJson = this.objectMapper.writeValueAsString(request);
         } catch (JsonProcessingException e) {
-            throw new BlueskyException("Failed to serialize record text to JSON", e);
+            throw new BlueskyException("Failed to serialize request object to JSON", e);
         }
 
         ContentType contentType = ContentType.APPLICATION_JSON.withCharset(StandardCharsets.UTF_8);
@@ -103,7 +101,7 @@ public final class BlueskyRecordService {
         return new StringEntity(requestJson, contentType);
     }
 
-    private HttpPost buildRequest(Session session, String text, Blob blob) {
+    private HttpPost buildRequest(Session session, String text, BlueskyBlob blob) {
         URI uri = this.buildUri();
 
         HttpPost httpPost = new HttpPost(uri);
@@ -114,9 +112,9 @@ public final class BlueskyRecordService {
 
         httpPost.addHeader(HttpHeaders.ACCEPT, ContentType.APPLICATION_JSON);
 
-        HttpEntity httpEntity = this.buildEntity(session, text, blob);
+        HttpEntity entity = this.buildEntity(session, text, blob);
 
-        httpPost.setEntity(httpEntity);
+        httpPost.setEntity(entity);
 
         return httpPost;
     }
@@ -137,15 +135,13 @@ public final class BlueskyRecordService {
         try {
             record = this.objectMapper.readValue(entityString, BlueskyRecord.class);
         } catch (JsonProcessingException e) {
-            String message = "Failed to parse create record response";
-
-            throw new BlueskyException(message, e);
+            throw new BlueskyException("Failed to parse create record response", e);
         }
 
         return new Response<>(statusCode, record);
     }
 
-    public BlueskyRecord createRecord(Session session, String text, Blob blob) {
+    public BlueskyRecord createRecord(Session session, String text, BlueskyBlob blob) {
         Objects.requireNonNull(session);
         Objects.requireNonNull(text);
 
@@ -156,21 +152,13 @@ public final class BlueskyRecordService {
         try {
             response = this.httpClient.execute(httpPost, this::handleResponse);
         } catch (IOException e) {
-            String message = "Failed to execute create record request";
-
-            throw new BlueskyException(message, e);
-        }
-
-        if (response.statusCode() != HttpStatus.SC_OK) {
-            String message = String.format("Failed to create record, status code: %d", response.statusCode());
-
-            throw new BlueskyException(message);
+            throw new BlueskyException("Failed to execute create record request", e);
         }
 
         BlueskyRecord record = response.data();
 
         if (record == null) {
-            String message = "Failed to create record, response body is null";
+            String message = String.format("Failed to create record, status code: %d", response.statusCode());
 
             throw new BlueskyException(message);
         }
