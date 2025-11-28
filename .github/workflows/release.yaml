@@ -70,7 +70,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: cta4j-api ${{ github.ref_name }}
+          name: cta-holiday-bot ${{ github.ref_name }}
           body_path: ${{ steps.notes.outputs.path }}
           overwrite_files: true
           files: |
