@@ -83,7 +83,7 @@ For Twitter/X you will have to go through the OAuth2 flow to get the initial acc
 ./mvnw spring-boot:run
 ```
 
-### 4. Deploy to AWS Lambda (Optional)
+### 5. Deploy to AWS Lambda (Optional)
 - Package using Maven Shade
 - Upload shaded JAR to AWS Lambda
 - Use the LambdaHandler entrypoint
