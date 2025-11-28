@@ -78,7 +78,7 @@ The application expects a JSON object in AWS Secrets Manager with the following 
 
 For Twitter/X you will have to go through the OAuth2 flow to get the initial access and refresh tokens.
 
-### 3. Run Locally
+### 4. Run Locally
 ```bash
 ./mvnw spring-boot:run
 ```
