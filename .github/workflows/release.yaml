@@ -74,6 +74,6 @@ jobs:
           body_path: ${{ steps.notes.outputs.path }}
           overwrite_files: true
           files: |
-            ${{ env.JAR_FILE }}
+            ${{ steps.package.outputs.deployment-file }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
