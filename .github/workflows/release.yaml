@@ -8,12 +8,6 @@ concurrency:
   group: deploy-main
   cancel-in-progress: true
 
-env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  LAMBDA_FUNCTION_NAME: ${{ secrets.LAMBDA_FUNCTION_NAME }}
-  APP_AWS_SECRETS_MANAGER_SECRET_ID: ${{ secrets.APP_AWS_SECRETS_MANAGER_SECRET_ID }}
-  APP_CTA_TRAIN_RUN: ${{ secrets.APP_CTA_TRAIN_RUN }}
-
 permissions:
   id-token: write
   contents: read
@@ -34,7 +28,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::038462756529:role/cta-holiday-bot-github-actions-role
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Build
@@ -52,12 +46,12 @@ jobs:
       - name: Upload artifact to S3
         run: |
           FILE='${{ steps.package.outputs.deployment-file }}'
-          aws s3 cp "$FILE" "s3://cta-holiday-bot-lambda-deploy-prod/${{ github.sha }}.jar"
+          aws s3 cp "$FILE" "s3://${{ secrets.S3_BUCKET_NAME }}/${{ github.sha }}.jar"
 
       - name: Update Lambda from S3
         run: |
           aws lambda update-function-code \
             --function-name "${{ env.LAMBDA_FUNCTION_NAME }}" \
-            --s3-bucket "cta-holiday-bot-lambda-deploy-prod" \
+            --s3-bucket "${{ secrets.S3_BUCKET_NAME }}" \
             --s3-key "${{ github.sha }}.jar" \
             --publish
