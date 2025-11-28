@@ -25,6 +25,12 @@ jobs:
           distribution: corretto
           java-version: '21'
 
+      - name: Read project version from pom.xml
+        id: ver
+        run: |
+          VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:3.5.0:exec)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -55,3 +61,25 @@ jobs:
             --s3-bucket "${{ secrets.S3_BUCKET_NAME }}" \
             --s3-key "${{ github.sha }}.jar" \
             --publish
+
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          VER="${{ steps.ver.outputs.version }}"
+          awk -v ver="$VER" 'BEGIN { regex="^##[[:space:]]+\\[?" ver "\\]?(\\s*-.*)?$" } $0 ~ regex {flag=1; next} flag && /^##[[:space:]]/ {flag=0} flag' CHANGELOG.md > RELEASE_NOTES.md || true
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "No changelog section found for ${VER}." > RELEASE_NOTES.md
+          fi
+          echo "path=RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release using CHANGELOG section
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: cta-holiday-bot ${{ github.ref_name }}
+          body_path: ${{ steps.notes.outputs.path }}
+          overwrite_files: true
+          files: |
+            ${{ steps.package.outputs.deployment-file }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
