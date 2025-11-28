@@ -25,6 +25,12 @@ jobs:
           distribution: corretto
           java-version: '21'
 
+      - name: Read project version from pom.xml
+        id: ver
+        run: |
+          VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:3.5.0:exec)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
