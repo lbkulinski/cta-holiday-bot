@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Added LICENSE file.
+
 ## 1.0.0 - 2025-11-28
 
 ### Added
 
 - Initial release of bot.
+
+[Unreleased]: https://github.com/lbkulinski/cta-holiday-bot/compare/v1.0.0...HEAD

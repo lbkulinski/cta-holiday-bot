@@ -55,3 +55,25 @@ jobs:
             --s3-bucket "${{ secrets.S3_BUCKET_NAME }}" \
             --s3-key "${{ github.sha }}.jar" \
             --publish
+
+      - name: Extract release notes from CHANGELOG.md
+        id: notes
+        run: |
+          VER="${{ steps.ver.outputs.version }}"
+          awk -v ver="$VER" 'BEGIN { regex="^##[[:space:]]+\\[?" ver "\\]?(\\s*-.*)?$" } $0 ~ regex {flag=1; next} flag && /^##[[:space:]]/ {flag=0} flag' CHANGELOG.md > RELEASE_NOTES.md || true
+          if [ ! -s RELEASE_NOTES.md ]; then
+            echo "No changelog section found for ${VER}." > RELEASE_NOTES.md
+          fi
+          echo "path=RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release using CHANGELOG section
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: cta4j-api ${{ github.ref_name }}
+          body_path: ${{ steps.notes.outputs.path }}
+          overwrite_files: true
+          files: |
+            ${{ env.JAR_FILE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
