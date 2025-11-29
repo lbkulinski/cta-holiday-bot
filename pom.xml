@@ -10,7 +10,7 @@
     </parent>
     <groupId>app.cta4j</groupId>
     <artifactId>cta-holiday-bot</artifactId>
-    <version>1.0.3</version>
+    <version>1.0.4</version>
     <name>cta-holiday-bot</name>
     <description>cta-holiday-bot</description>
     <url/>
@@ -67,7 +67,7 @@
         <dependency>
             <groupId>com.cta4j</groupId>
             <artifactId>cta4j-java-sdk</artifactId>
-            <version>3.0.2</version>
+            <version>3.0.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
