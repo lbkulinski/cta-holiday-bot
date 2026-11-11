@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.Optional;
 import java.util.function.Supplier;
 
 @Configuration
@@ -21,15 +20,13 @@ public class FunctionConfig {
         @Value("${app.cta.train.run}") String trainRun
     ) {
         return () -> {
-            Optional<Post> optionalPost = postService.buildPost(trainRun);
+            Post post = postService.buildPost(trainRun);
 
-            if (optionalPost.isEmpty()) {
+            if (post == null) {
                 log.info("No post to publish for train run {}", trainRun);
 
                 return "NO_POST";
             }
-
-            Post post = optionalPost.get();
 
             multiplatformPublisher.publish(post);
 
