@@ -15,7 +15,7 @@ public class OAuth10aServiceConfig {
         Secret.TwitterSecret secret = secretsClient.getSecret().twitter();
 
         return new ServiceBuilder(secret.consumerKey())
-            .apiSecret(secret.consumerSecret())
+            .apiSecret(secret.consumerKeySecret())
             .build(TwitterApi.instance());
     }
 }

@@ -27,9 +27,9 @@ public final class PostService {
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
 
     private static final String NO_LINE_TEXT_TEMPLATE =
-        "Holiday train to %s will be arriving at %s at %s \uD83C\uDF85\uD83C\uDFFB";
+        "Sorry testing...\nHoliday train to %s will be arriving at %s at %s \uD83C\uDF85\uD83C\uDFFB";
     private static final String LINE_TEXT_TEMPLATE =
-        "%s Line train to %s will be arriving at %s at %s \uD83C\uDF85\uD83C\uDFFB";
+        "Sorry testing...\n%s Line train to %s will be arriving at %s at %s \uD83C\uDF85\uD83C\uDFFB";
 
     private final TrainApi trainApi;
     private final MapboxService mapboxService;

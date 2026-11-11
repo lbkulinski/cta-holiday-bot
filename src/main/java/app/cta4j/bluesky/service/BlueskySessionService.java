@@ -6,8 +6,6 @@ import app.cta4j.bluesky.exception.BlueskyException;
 import app.cta4j.common.dto.Response;
 import app.cta4j.aws.dto.Secret;
 import app.cta4j.aws.client.SecretsClient;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.*;
@@ -16,6 +14,8 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -72,7 +72,7 @@ public final class BlueskySessionService {
 
         try {
             requestJson = this.objectMapper.writeValueAsString(request);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new BlueskyException("Failed to serialize session payload to JSON", e);
         }
 
@@ -110,7 +110,7 @@ public final class BlueskySessionService {
 
         try {
             session = this.objectMapper.readValue(entityString, Session.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new BlueskyException("Failed to parse create session response", e);
         }
 

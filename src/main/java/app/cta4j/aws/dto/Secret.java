@@ -26,20 +26,20 @@ public record Secret(
 
     public record TwitterSecret(
         String consumerKey,
-        String consumerSecret,
+        String consumerKeySecret,
         String accessToken,
         String accessTokenSecret
     ) {
         public TwitterSecret {
             Objects.requireNonNull(consumerKey);
-            Objects.requireNonNull(consumerSecret);
+            Objects.requireNonNull(consumerKeySecret);
             Objects.requireNonNull(accessToken);
             Objects.requireNonNull(accessTokenSecret);
         }
 
         @Override
         public String toString() {
-            return "TwitterSecret{consumerKey=***, consumerSecret=***, accessToken=***, accessTokenSecret=***}";
+            return "TwitterSecret{consumerKey=***, consumerKeySecret=***, accessToken=***, accessTokenSecret=***}";
         }
     }
 

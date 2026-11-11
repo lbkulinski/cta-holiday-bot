@@ -15,11 +15,14 @@ import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth10aService;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.net.URIBuilder;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
@@ -87,25 +90,25 @@ public final class TwitterClient {
     public Tweet postTweet(String text, @Nullable String mediaId) {
         Objects.requireNonNull(text);
 
-        var request = new OAuthRequest(Verb.POST, CREATE_TWEET_URL);
-
         String payload = this.getCreateTweetPayload(text, mediaId);
 
-        request.setPayload(payload);
+        String body = this.post(CREATE_TWEET_URL, payload);
 
-        Secret.TwitterSecret secret = this.secretsClient.getSecret().twitter();
+        CreateTweetResponse response;
 
-        var accessToken = new OAuth1AccessToken(secret.accessToken(), secret.accessTokenSecret());
-
-        this.oAuth10aService.signRequest(accessToken, request);
-
-        try (Response response = this.oAuth10aService.execute(request)) {
-            String body = response.getBody();
-
-            return this.jsonMapper.readValue(body, CreateTweetResponse.class).data();
-        } catch (ExecutionException | InterruptedException | IOException e) {
-            throw new TwitterException("Failed to post tweet", e);
+        try {
+            response = this.jsonMapper.readValue(body, CreateTweetResponse.class);
+        } catch (JacksonException e) {
+            throw new TwitterException("Failed to deserialize post tweet response", e);
         }
+
+        Tweet data = response.data();
+
+        if (data == null) {
+            throw new TwitterException("Failed to post tweet");
+        }
+
+        return data;
     }
 
     public Tweet postTweet(String text) {
@@ -115,25 +118,25 @@ public final class TwitterClient {
     public TwitterMedia uploadMedia(File file) {
         Objects.requireNonNull(file);
 
-        var request = new OAuthRequest(Verb.POST, UPLOAD_MEDIA_URL);
-
         String payload = this.getUploadMediaPayload(file);
 
-        request.setPayload(payload);
+        String body = this.post(UPLOAD_MEDIA_URL, payload);
 
-        Secret.TwitterSecret secret = this.secretsClient.getSecret().twitter();
+        UploadMediaResponse response;
 
-        var accessToken = new OAuth1AccessToken(secret.accessToken(), secret.accessTokenSecret());
-
-        this.oAuth10aService.signRequest(accessToken, request);
-
-        try (Response response = this.oAuth10aService.execute(request)) {
-            String body = response.getBody();
-
-            return this.jsonMapper.readValue(body, UploadMediaResponse.class).data();
-        } catch (ExecutionException | InterruptedException | IOException e) {
-            throw new TwitterException("Failed to upload media", e);
+        try {
+            response = this.jsonMapper.readValue(body, UploadMediaResponse.class);
+        } catch (JacksonException e) {
+            throw new TwitterException("Failed to deserialize upload media response", e);
         }
+
+        TwitterMedia data = response.data();
+
+        if (data == null) {
+            throw new TwitterException("Failed to upload media");
+        }
+
+        return data;
     }
 
     private String getCreateTweetPayload(String text, @Nullable String mediaId) {
@@ -162,5 +165,24 @@ public final class TwitterClient {
         var request = new UploadMediaRequest(media, UPLOAD_MEDIA_CATEGORY);
 
         return this.jsonMapper.writeValueAsString(request);
+    }
+
+    private String post(String url, String payload) {
+        var request = new OAuthRequest(Verb.POST, url);
+
+        request.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+        request.setPayload(payload);
+
+        Secret.TwitterSecret secret = this.secretsClient.getSecret().twitter();
+
+        var accessToken = new OAuth1AccessToken(secret.accessToken(), secret.accessTokenSecret());
+
+        this.oAuth10aService.signRequest(accessToken, request);
+
+        try (Response response = this.oAuth10aService.execute(request)) {
+            return response.getBody();
+        } catch (ExecutionException | InterruptedException | IOException e) {
+            throw new TwitterException("Failed to upload media", e);
+        }
     }
 }

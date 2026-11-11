@@ -36,7 +36,7 @@ public final class TwitterPublisher implements SocialPublisher {
         if (post.media() == null) {
             Tweet tweet = this.twitterClient.postTweet(post.text());
 
-            log.info("Tweet created without image on Twitter with ID {}", tweet.id());
+            log.info("Tweet created without image with ID {}", tweet.id());
 
             return;
         }
@@ -45,6 +45,6 @@ public final class TwitterPublisher implements SocialPublisher {
 
         Tweet tweet = this.twitterClient.postTweet(post.text(), mediaId);
 
-        log.info("Tweet created on Twitter with ID {}", tweet.id());
+        log.info("Tweet created with ID {}", tweet.id());
     }
 }

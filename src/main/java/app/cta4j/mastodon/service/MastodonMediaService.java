@@ -4,8 +4,6 @@ import app.cta4j.common.dto.Response;
 import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.mastodon.dto.MastodonMedia;
 import app.cta4j.mastodon.exception.MastodonException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
@@ -14,6 +12,8 @@ import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.net.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -106,7 +106,7 @@ public final class MastodonMediaService {
 
         try {
             media = this.objectMapper.readValue(entityString, MastodonMedia.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new MastodonException("Failed to parse media response", e);
         }
 

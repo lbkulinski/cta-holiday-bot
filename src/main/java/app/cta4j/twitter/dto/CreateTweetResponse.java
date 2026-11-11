@@ -2,13 +2,8 @@ package app.cta4j.twitter.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.jspecify.annotations.NullMarked;
-
-import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NullMarked
-public record CreateTweetResponse(Tweet data) {
-    public CreateTweetResponse {
-        Objects.requireNonNull(data);
-    }
-}
+public record CreateTweetResponse(@Nullable Tweet data) {}

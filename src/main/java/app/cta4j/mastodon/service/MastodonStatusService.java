@@ -5,16 +5,21 @@ import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.mastodon.dto.CreateStatusRequest;
 import app.cta4j.mastodon.dto.MastodonStatus;
 import app.cta4j.mastodon.exception.MastodonException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.core5.http.*;
+import org.apache.hc.core5.http.ClassicHttpResponse;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.HttpHeaders;
+import org.apache.hc.core5.http.HttpStatus;
+import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -82,7 +87,7 @@ public final class MastodonStatusService {
 
         try {
             requestJson = this.objectMapper.writeValueAsString(request);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new MastodonException("Failed to serialize request object to JSON", e);
         }
 
@@ -124,7 +129,7 @@ public final class MastodonStatusService {
 
         try {
             status = this.objectMapper.readValue(entityString, MastodonStatus.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new MastodonException("Failed to parse status response", e);
         }
 

@@ -3,8 +3,6 @@ package app.cta4j.bluesky.service;
 import app.cta4j.bluesky.dto.*;
 import app.cta4j.bluesky.exception.BlueskyException;
 import app.cta4j.common.dto.Response;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.*;
@@ -13,6 +11,8 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.apache.hc.core5.net.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -92,7 +92,7 @@ public final class BlueskyRecordService {
 
         try {
             requestJson = this.objectMapper.writeValueAsString(request);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new BlueskyException("Failed to serialize request object to JSON", e);
         }
 
@@ -134,7 +134,7 @@ public final class BlueskyRecordService {
 
         try {
             record = this.objectMapper.readValue(entityString, BlueskyRecord.class);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new BlueskyException("Failed to parse create record response", e);
         }
 
