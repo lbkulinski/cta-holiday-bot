@@ -3,7 +3,6 @@ package app.cta4j.aws.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.jspecify.annotations.NullMarked;
 
-import java.time.Instant;
 import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -26,28 +25,21 @@ public record Secret(
     }
 
     public record TwitterSecret(
-        String clientId,
-        String clientSecret,
+        String consumerKey,
+        String consumerSecret,
         String accessToken,
-        String refreshToken,
-        Instant expirationTime
+        String accessTokenSecret
     ) {
         public TwitterSecret {
-            Objects.requireNonNull(clientId);
-            Objects.requireNonNull(clientSecret);
+            Objects.requireNonNull(consumerKey);
+            Objects.requireNonNull(consumerSecret);
             Objects.requireNonNull(accessToken);
-            Objects.requireNonNull(refreshToken);
-            Objects.requireNonNull(expirationTime);
+            Objects.requireNonNull(accessTokenSecret);
         }
 
         @Override
         public String toString() {
-            return """
-                TwitterSecret{clientId=%s, \
-                clientSecret=***, \
-                accessToken=***, \
-                refreshToken=***, \
-                expirationTime=%s}""".formatted(this.clientId, this.expirationTime);
+            return "TwitterSecret{consumerKey=***, consumerSecret=***, accessToken=***, accessTokenSecret=***}";
         }
     }
 
