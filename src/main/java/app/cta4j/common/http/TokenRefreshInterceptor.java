@@ -1,6 +1,6 @@
 package app.cta4j.common.http;
 
-import app.cta4j.common.service.SecretService;
+import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.twitter.service.TwitterTokenRefreshService;
 import com.rollbar.notifier.Rollbar;
 import org.apache.hc.core5.http.EntityDetails;
@@ -27,7 +27,7 @@ public final class TokenRefreshInterceptor implements HttpRequestInterceptor {
     private static final String TWITTER_HOST_NAME = "api.x.com";
     private static final Duration REFRESH_THRESHOLD = Duration.ofMinutes(5);
 
-    private final SecretService secretService;
+    private final SecretsClient secretsClient;
     private final TwitterTokenRefreshService tokenRefreshService;
     private final Rollbar rollbar;
 
@@ -35,11 +35,11 @@ public final class TokenRefreshInterceptor implements HttpRequestInterceptor {
 
     @Autowired
     public TokenRefreshInterceptor(
-        SecretService secretService,
+        SecretsClient secretsClient,
         TwitterTokenRefreshService tokenRefreshService,
         Rollbar rollbar
     ) {
-        this.secretService = secretService;
+        this.secretsClient = secretsClient;
         this.tokenRefreshService = tokenRefreshService;
         this.rollbar = rollbar;
         this.lock = new ReentrantLock();
@@ -72,7 +72,7 @@ public final class TokenRefreshInterceptor implements HttpRequestInterceptor {
         try {
             Instant now = Instant.now();
 
-            Instant expirationTime = this.secretService.getSecret()
+            Instant expirationTime = this.secretsClient.getSecret()
                                                        .twitter()
                                                        .expirationTime();
 

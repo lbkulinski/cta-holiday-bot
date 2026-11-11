@@ -5,7 +5,7 @@ import app.cta4j.twitter.dto.CreateTweetMedia;
 import app.cta4j.twitter.dto.CreateTweetRequest;
 import app.cta4j.twitter.dto.CreateTweetResponse;
 import app.cta4j.twitter.exception.TwitterException;
-import app.cta4j.common.service.SecretService;
+import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.twitter.dto.Tweet;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,17 +31,17 @@ public final class TweetService {
     private static final String HOST_NAME = "api.x.com";
     private static final String TWEET_ENDPOINT = "/2/tweets";
 
-    private final SecretService secretService;
+    private final SecretsClient secretsClient;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public TweetService(
-        SecretService secretService,
+        SecretsClient secretsClient,
         CloseableHttpClient httpClient,
         ObjectMapper objectMapper
     ) {
-        this.secretService = secretService;
+        this.secretsClient = secretsClient;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
@@ -63,7 +63,7 @@ public final class TweetService {
     }
 
     private String buildAuthorizationHeader() {
-        String accessToken = this.secretService.getSecret()
+        String accessToken = this.secretsClient.getSecret()
                                                .twitter()
                                                .accessToken();
 

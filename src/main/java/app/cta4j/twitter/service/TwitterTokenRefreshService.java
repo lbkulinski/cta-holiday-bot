@@ -1,7 +1,7 @@
 package app.cta4j.twitter.service;
 
 import app.cta4j.twitter.exception.TwitterException;
-import app.cta4j.common.service.SecretService;
+import app.cta4j.aws.client.SecretsClient;
 import com.nimbusds.oauth2.sdk.*;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.auth.ClientAuthentication;
@@ -26,11 +26,11 @@ public final class TwitterTokenRefreshService {
     private static final String HOST_NAME = "api.x.com";
     private static final String OAUTH_TOKEN_ENDPOINT = "/2/oauth2/token";
 
-    private final SecretService secretService;
+    private final SecretsClient secretsClient;
 
     @Autowired
-    public TwitterTokenRefreshService(SecretService secretService) {
-        this.secretService = secretService;
+    public TwitterTokenRefreshService(SecretsClient secretsClient) {
+        this.secretsClient = secretsClient;
     }
 
     private URI getUri() {
@@ -50,7 +50,7 @@ public final class TwitterTokenRefreshService {
     }
 
     private ClientAuthentication getAuthentication() {
-        var twitterSecret = this.secretService.getSecret()
+        var twitterSecret = this.secretsClient.getSecret()
                                               .twitter();
 
         ClientID clientId = new ClientID(twitterSecret.clientId());
@@ -61,7 +61,7 @@ public final class TwitterTokenRefreshService {
     }
 
     private RefreshTokenGrant getGrant() {
-        String refreshToken = this.secretService.getSecret()
+        String refreshToken = this.secretsClient.getSecret()
                                                 .twitter()
                                                 .refreshToken();
 
@@ -118,7 +118,7 @@ public final class TwitterTokenRefreshService {
         String newRefreshToken;
 
         if (refreshToken == null) {
-            newRefreshToken = this.secretService.getSecret()
+            newRefreshToken = this.secretsClient.getSecret()
                                                 .twitter()
                                                 .refreshToken();
         } else {
@@ -133,7 +133,7 @@ public final class TwitterTokenRefreshService {
         Instant expirationTime = Instant.now()
                                         .plusSeconds(lifetime);
 
-        this.secretService.setTwitterTokens(newAccessToken, newRefreshToken, expirationTime);
+        this.secretsClient.setTwitterTokens(newAccessToken, newRefreshToken, expirationTime);
 
         return newAccessToken;
     }

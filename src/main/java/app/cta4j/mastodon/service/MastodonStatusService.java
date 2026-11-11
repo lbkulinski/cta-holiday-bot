@@ -1,7 +1,7 @@
 package app.cta4j.mastodon.service;
 
 import app.cta4j.common.dto.Response;
-import app.cta4j.common.service.SecretService;
+import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.mastodon.dto.CreateStatusRequest;
 import app.cta4j.mastodon.dto.MastodonStatus;
 import app.cta4j.mastodon.exception.MastodonException;
@@ -29,17 +29,17 @@ public final class MastodonStatusService {
     private static final String HOST_NAME = "mastodon.social";
     private static final String STATUS_ENDPOINT = "/api/v1/statuses";
 
-    private final SecretService secretService;
+    private final SecretsClient secretsClient;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public MastodonStatusService(
-        SecretService secretService,
+        SecretsClient secretsClient,
         CloseableHttpClient httpClient,
         ObjectMapper objectMapper
     ) {
-        this.secretService = secretService;
+        this.secretsClient = secretsClient;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
@@ -60,7 +60,7 @@ public final class MastodonStatusService {
     }
 
     private String buildAuthorizationHeader() {
-        String accessToken = this.secretService.getSecret()
+        String accessToken = this.secretsClient.getSecret()
                                                .mastodon()
                                                .accessToken();
 

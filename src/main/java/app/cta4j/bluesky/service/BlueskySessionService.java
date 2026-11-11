@@ -4,8 +4,8 @@ import app.cta4j.bluesky.dto.CreateSessionRequest;
 import app.cta4j.bluesky.dto.Session;
 import app.cta4j.bluesky.exception.BlueskyException;
 import app.cta4j.common.dto.Response;
-import app.cta4j.common.dto.Secret;
-import app.cta4j.common.service.SecretService;
+import app.cta4j.aws.dto.Secret;
+import app.cta4j.aws.client.SecretsClient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
@@ -28,17 +28,17 @@ public final class BlueskySessionService {
     private static final String HOST_NAME = "bsky.social";
     private static final String SESSION_ENDPOINT = "/xrpc/com.atproto.server.createSession";
 
-    private final SecretService secretService;
+    private final SecretsClient secretsClient;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public BlueskySessionService(
-        SecretService secretService,
+        SecretsClient secretsClient,
         CloseableHttpClient httpClient,
         ObjectMapper objectMapper
     ) {
-        this.secretService = secretService;
+        this.secretsClient = secretsClient;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
@@ -60,7 +60,7 @@ public final class BlueskySessionService {
     }
 
     private HttpEntity buildEntity() {
-        Secret.BlueskySecret blueskySecret = this.secretService.getSecret()
+        Secret.BlueskySecret blueskySecret = this.secretsClient.getSecret()
                                                                .bluesky();
 
         CreateSessionRequest request = new CreateSessionRequest(

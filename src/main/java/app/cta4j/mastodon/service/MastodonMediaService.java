@@ -1,7 +1,7 @@
 package app.cta4j.mastodon.service;
 
 import app.cta4j.common.dto.Response;
-import app.cta4j.common.service.SecretService;
+import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.mastodon.dto.MastodonMedia;
 import app.cta4j.mastodon.exception.MastodonException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -27,17 +27,17 @@ public final class MastodonMediaService {
     private static final String HOST_NAME = "mastodon.social";
     private static final String MEDIA_ENDPOINT = "/api/v2/media";
 
-    private final SecretService secretService;
+    private final SecretsClient secretsClient;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public MastodonMediaService(
-        SecretService secretService,
+        SecretsClient secretsClient,
         CloseableHttpClient httpClient,
         ObjectMapper objectMapper
     ) {
-        this.secretService = secretService;
+        this.secretsClient = secretsClient;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
@@ -58,7 +58,7 @@ public final class MastodonMediaService {
     }
 
     private String buildAuthorizationHeader() {
-        String accessToken = this.secretService.getSecret()
+        String accessToken = this.secretsClient.getSecret()
                                                .mastodon()
                                                .accessToken();
 

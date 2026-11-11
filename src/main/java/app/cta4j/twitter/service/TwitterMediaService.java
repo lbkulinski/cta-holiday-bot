@@ -1,7 +1,7 @@
 package app.cta4j.twitter.service;
 
 import app.cta4j.common.dto.Response;
-import app.cta4j.common.service.SecretService;
+import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.twitter.dto.TwitterMedia;
 import app.cta4j.twitter.dto.UploadMediaResponse;
 import app.cta4j.twitter.exception.TwitterException;
@@ -28,17 +28,17 @@ public final class TwitterMediaService {
     private static final String HOST_NAME = "api.x.com";
     private static final String MEDIA_ENDPOINT = "/2/media/upload";
 
-    private final SecretService secretService;
+    private final SecretsClient secretsClient;
     private final CloseableHttpClient httpClient;
     private final ObjectMapper objectMapper;
 
     @Autowired
     public TwitterMediaService(
-        SecretService secretService,
+        SecretsClient secretsClient,
         CloseableHttpClient httpClient,
         ObjectMapper objectMapper
     ) {
-        this.secretService = secretService;
+        this.secretsClient = secretsClient;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
     }
@@ -60,7 +60,7 @@ public final class TwitterMediaService {
     }
 
     private String buildAuthorizationHeader() {
-        String accessToken = this.secretService.getSecret()
+        String accessToken = this.secretsClient.getSecret()
                                                .twitter()
                                                .accessToken();
 

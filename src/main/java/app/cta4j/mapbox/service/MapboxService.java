@@ -1,8 +1,8 @@
 package app.cta4j.mapbox.service;
 
 import app.cta4j.mapbox.exception.MapboxException;
-import app.cta4j.common.dto.Secret;
-import app.cta4j.common.service.SecretService;
+import app.cta4j.aws.dto.Secret;
+import app.cta4j.aws.client.SecretsClient;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,8 +24,8 @@ public final class MapboxService {
     private final Secret secret;
 
     @Autowired
-    public MapboxService(SecretService secretService) {
-        this.secret = secretService.getSecret();
+    public MapboxService(SecretsClient secretsClient) {
+        this.secret = secretsClient.getSecret();
     }
 
     public File generateMap(BigDecimal latitude, BigDecimal longitude) {
