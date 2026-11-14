@@ -7,21 +7,21 @@ import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.twitter.dto.CreateTweetResponse;
 import app.cta4j.twitter.dto.Tweet;
 import app.cta4j.twitter.dto.TwitterMedia;
-import app.cta4j.twitter.dto.UploadMediaRequest;
-import app.cta4j.twitter.dto.UploadMediaResponse;
+import app.cta4j.twitter.dto.UploadTwitterMediaRequest;
+import app.cta4j.twitter.dto.UploadTwitterMediaResponse;
 import app.cta4j.twitter.exception.TwitterException;
 import com.github.scribejava.core.model.OAuth1AccessToken;
 import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth10aService;
-import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.hc.core5.net.URIBuilder;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-@Service
+@Component
 @NullMarked
 public final class TwitterClient {
     private static final String SCHEME = "https";
@@ -122,10 +122,10 @@ public final class TwitterClient {
 
         String body = this.post(UPLOAD_MEDIA_URL, payload);
 
-        UploadMediaResponse response;
+        UploadTwitterMediaResponse response;
 
         try {
-            response = this.jsonMapper.readValue(body, UploadMediaResponse.class);
+            response = this.jsonMapper.readValue(body, UploadTwitterMediaResponse.class);
         } catch (JacksonException e) {
             throw new TwitterException("Failed to deserialize upload media response", e);
         }
@@ -162,7 +162,7 @@ public final class TwitterClient {
 
         String media = Base64.getEncoder().encodeToString(bytes);
 
-        var request = new UploadMediaRequest(media, UPLOAD_MEDIA_CATEGORY);
+        var request = new UploadTwitterMediaRequest(media, UPLOAD_MEDIA_CATEGORY);
 
         return this.jsonMapper.writeValueAsString(request);
     }
@@ -170,7 +170,7 @@ public final class TwitterClient {
     private String post(String url, String payload) {
         var request = new OAuthRequest(Verb.POST, url);
 
-        request.addHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_JSON.getMimeType());
+        request.addHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
         request.setPayload(payload);
 
         Secret.TwitterSecret secret = this.secretsClient.getSecret().twitter();

@@ -6,4 +6,4 @@ import org.jspecify.annotations.Nullable;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NullMarked
-public record UploadMediaResponse(@Nullable TwitterMedia data) {}
+public record UploadTwitterMediaResponse(@Nullable TwitterMedia data) {}
