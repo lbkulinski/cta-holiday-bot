@@ -8,17 +8,17 @@ import app.cta4j.bluesky.exception.BlueskyException;
 import org.apache.hc.core5.net.URIBuilder;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.Objects;
 
 @Component
@@ -98,9 +98,13 @@ public final class BlueskyClient {
         String authHeader = AUTH_HEADER_TEMPLATE.formatted(session.accessJwt());
         var lengthHeader = String.valueOf(file.length());
 
-        var form = new LinkedMultiValueMap<String, Object>();
+        byte[] bytes;
 
-        form.add("file", new FileSystemResource(file));
+        try {
+            bytes = Files.readAllBytes(file.toPath());
+        } catch (IOException e) {
+            throw new BlueskyException("Failed to read file while uploading blob", e);
+        }
 
         UploadBlobResponse response;
 
@@ -109,8 +113,8 @@ public final class BlueskyClient {
                                       .uri(UPLOAD_BLOB_URI)
                                       .header(HttpHeaders.AUTHORIZATION, authHeader)
                                       .header(HttpHeaders.CONTENT_LENGTH, lengthHeader)
-                                      .contentType(MediaType.MULTIPART_FORM_DATA)
-                                      .body(form)
+                                      .contentType(MediaType.IMAGE_PNG)
+                                      .body(bytes)
                                       .retrieve()
                                       .toEntity(UploadBlobResponse.class)
                                       .getBody();
