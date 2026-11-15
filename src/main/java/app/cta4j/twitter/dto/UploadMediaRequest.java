@@ -6,11 +6,11 @@ import org.jspecify.annotations.NullMarked;
 import java.util.Objects;
 
 @NullMarked
-public record UploadTwitterMediaRequest(
+public record UploadMediaRequest(
     String media,
     @JsonProperty("media_category") String mediaCategory
 ) {
-    public UploadTwitterMediaRequest {
+    public UploadMediaRequest {
         Objects.requireNonNull(media);
         Objects.requireNonNull(mediaCategory);
     }

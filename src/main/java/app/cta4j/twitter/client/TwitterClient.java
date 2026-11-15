@@ -6,9 +6,9 @@ import app.cta4j.twitter.dto.CreateTweetRequest;
 import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.twitter.dto.CreateTweetResponse;
 import app.cta4j.twitter.dto.Tweet;
-import app.cta4j.twitter.dto.TwitterMedia;
-import app.cta4j.twitter.dto.UploadTwitterMediaRequest;
-import app.cta4j.twitter.dto.UploadTwitterMediaResponse;
+import app.cta4j.twitter.dto.Media;
+import app.cta4j.twitter.dto.UploadMediaRequest;
+import app.cta4j.twitter.dto.UploadMediaResponse;
 import app.cta4j.twitter.exception.TwitterException;
 import com.github.scribejava.core.model.OAuth1AccessToken;
 import com.github.scribejava.core.model.OAuthRequest;
@@ -115,28 +115,28 @@ public final class TwitterClient {
         return this.postTweet(text, null);
     }
 
-    public TwitterMedia uploadMedia(File file) {
+    public Media uploadMedia(File file) {
         Objects.requireNonNull(file);
 
         String payload = this.getUploadMediaPayload(file);
 
         String body = this.post(UPLOAD_MEDIA_URL, payload);
 
-        UploadTwitterMediaResponse response;
+        UploadMediaResponse response;
 
         try {
-            response = this.jsonMapper.readValue(body, UploadTwitterMediaResponse.class);
+            response = this.jsonMapper.readValue(body, UploadMediaResponse.class);
         } catch (JacksonException e) {
             throw new TwitterException("Failed to deserialize upload media response", e);
         }
 
-        TwitterMedia data = response.data();
+        Media media = response.data();
 
-        if (data == null) {
+        if (media == null) {
             throw new TwitterException("Failed to upload media");
         }
 
-        return data;
+        return media;
     }
 
     private String getCreateTweetPayload(String text, @Nullable String mediaId) {
@@ -162,7 +162,7 @@ public final class TwitterClient {
 
         String media = Base64.getEncoder().encodeToString(bytes);
 
-        var request = new UploadTwitterMediaRequest(media, UPLOAD_MEDIA_CATEGORY);
+        var request = new UploadMediaRequest(media, UPLOAD_MEDIA_CATEGORY);
 
         return this.jsonMapper.writeValueAsString(request);
     }

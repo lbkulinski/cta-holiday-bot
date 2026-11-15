@@ -7,11 +7,11 @@ import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NullMarked
-public record BlueskySession(
+public record Session(
     String did,
     String accessJwt
 ) {
-    public BlueskySession {
+    public Session {
         Objects.requireNonNull(did);
         Objects.requireNonNull(accessJwt);
     }

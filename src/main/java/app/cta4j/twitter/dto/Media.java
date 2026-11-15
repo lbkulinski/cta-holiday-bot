@@ -8,11 +8,11 @@ import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NullMarked
-public record TwitterMedia(
+public record Media(
     String id,
     @JsonAlias("media_key") String mediaKey
 ) {
-    public TwitterMedia {
+    public Media {
         Objects.requireNonNull(id);
         Objects.requireNonNull(mediaKey);
     }
