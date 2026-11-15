@@ -1,8 +1,8 @@
 package app.cta4j.common.config;
 
-import app.cta4j.common.dto.Post;
+import app.cta4j.post.model.Post;
 import app.cta4j.common.publisher.MultiplatformPublisher;
-import app.cta4j.common.service.PostService;
+import app.cta4j.post.service.PostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

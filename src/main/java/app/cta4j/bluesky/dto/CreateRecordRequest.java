@@ -37,7 +37,7 @@ public record CreateRecordRequest(
 
     public record Embed(
         @JsonProperty("$type") String type,
-        List<Image> images
+        List<ImageBlob> images
     ) {
         public Embed {
             Objects.requireNonNull(type);

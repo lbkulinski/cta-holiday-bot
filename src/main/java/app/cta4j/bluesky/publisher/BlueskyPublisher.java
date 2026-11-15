@@ -4,10 +4,10 @@ import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.aws.dto.Secret;
 import app.cta4j.bluesky.client.BlueskyClient;
 import app.cta4j.bluesky.dto.Blob;
-import app.cta4j.bluesky.dto.Image;
+import app.cta4j.bluesky.dto.ImageBlob;
 import app.cta4j.bluesky.dto.Record;
 import app.cta4j.bluesky.dto.Session;
-import app.cta4j.common.dto.Post;
+import app.cta4j.post.model.Post;
 import app.cta4j.common.publisher.SocialPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
@@ -43,7 +43,7 @@ public final class BlueskyPublisher implements SocialPublisher {
 
         Session session = this.blueskyClient.createSession(secret.identifier(), secret.appPassword());
 
-        if (post.media() == null) {
+        if (post.image() == null) {
             Record record = this.blueskyClient.createRecord(session, post.text());
 
             log.info("Post without image created on Bluesky with ID {}", record.cid());
@@ -51,9 +51,9 @@ public final class BlueskyPublisher implements SocialPublisher {
             return;
         }
 
-        Blob blob = this.blueskyClient.uploadBlob(session, post.media());
+        Blob blob = this.blueskyClient.uploadBlob(session, post.image().file());
 
-        var image = new Image(blob, "");
+        var image = new ImageBlob(blob, post.image().alt());
 
         Record record = this.blueskyClient.createRecord(session, post.text(), image);
 

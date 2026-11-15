@@ -5,11 +5,11 @@ import org.jspecify.annotations.NullMarked;
 import java.util.Objects;
 
 @NullMarked
-public record Image(
+public record ImageBlob(
     Blob image,
     String alt
 ) {
-    public Image {
+    public ImageBlob {
         Objects.requireNonNull(image);
         Objects.requireNonNull(alt);
     }

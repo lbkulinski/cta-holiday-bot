@@ -1,6 +1,6 @@
 package app.cta4j.common.publisher;
 
-import app.cta4j.common.dto.Post;
+import app.cta4j.post.model.Post;
 import com.rollbar.notifier.Rollbar;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;

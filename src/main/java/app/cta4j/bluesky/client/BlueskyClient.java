@@ -2,7 +2,7 @@ package app.cta4j.bluesky.client;
 
 import app.cta4j.bluesky.dto.Blob;
 import app.cta4j.bluesky.dto.CreateRecordRequest;
-import app.cta4j.bluesky.dto.Image;
+import app.cta4j.bluesky.dto.ImageBlob;
 import app.cta4j.bluesky.dto.Record;
 import app.cta4j.bluesky.dto.Session;
 import app.cta4j.bluesky.dto.CreateSessionRequest;
@@ -150,7 +150,7 @@ public final class BlueskyClient {
         return response.blob();
     }
 
-    public Record createRecord(Session session, String text, @Nullable Image image) {
+    public Record createRecord(Session session, String text, @Nullable ImageBlob image) {
         Objects.requireNonNull(text);
 
         var authHeader = AUTH_HEADER_TEMPLATE.formatted(session.accessJwt());

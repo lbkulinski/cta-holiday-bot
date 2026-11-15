@@ -1,6 +1,6 @@
-package app.cta4j.common.service;
+package app.cta4j.post.service;
 
-import app.cta4j.common.dto.Post;
+import app.cta4j.post.model.Post;
 import app.cta4j.mapbox.service.MapboxService;
 import com.cta4j.common.geo.Coordinates;
 import com.cta4j.train.TrainApi;
@@ -26,10 +26,10 @@ public final class PostService {
     private static final ZoneId ZONE = ZoneId.of("America/Chicago");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
 
-    private static final String NO_LINE_TEXT_TEMPLATE =
-        "Sorry testing...\nHoliday train to %s will be arriving at %s at %s \uD83C\uDF85\uD83C\uDFFB";
-    private static final String LINE_TEXT_TEMPLATE =
-        "Sorry testing...\n%s Line train to %s will be arriving at %s at %s \uD83C\uDF85\uD83C\uDFFB";
+    private static final String TEXT_TEMPLATE =
+        "Sorry testing...\n%s train to %s will be arriving at %s at %s \uD83C\uDF85\uD83C\uDFFB";
+    private static final String ALT_TEMPLATE =
+        "Map showing the current location of the %s train to %s, marked with a pin. It is heading to %s.";
 
     private final TrainApi trainApi;
     private final MapboxService mapboxService;
@@ -69,24 +69,48 @@ public final class PostService {
         String text = this.buildText(arrival);
 
         Coordinates coordinates = followTrain.coordinates();
-        File media = this.generateMap(coordinates);
 
-        return new Post(text, media);
+        if (coordinates == null) {
+            return new Post(text, null);
+        }
+
+        File file = this.generateMap(coordinates);
+        String alt = this.buildAlt(arrival);
+
+        var image = new Post.Image(file, alt);
+
+        return new Post(text, image);
     }
 
     private String buildText(Arrival arrival) {
-        TrainLine line = arrival.line();
+        String trainLabel = trainLabel(arrival.line());
 
         String arrivalTime = arrival.arrivalTime()
                                     .atZone(ZONE)
                                     .toLocalDateTime()
                                     .format(TIME_FORMAT);
 
-        if (line == null) {
-            return NO_LINE_TEXT_TEMPLATE.formatted(arrival.destinationName(), arrival.stationName(), arrivalTime);
-        }
+        return TEXT_TEMPLATE.formatted(trainLabel, arrival.destinationName(), arrival.stationName(), arrivalTime);
+    }
 
-        var lineString = switch (line) {
+    private File generateMap(Coordinates coordinates) {
+        return this.mapboxService.generateMap(coordinates.latitude(), coordinates.longitude());
+    }
+
+    private String buildAlt(Arrival arrival) {
+        String trainLabel = trainLabel(arrival.line());
+
+        return ALT_TEMPLATE.formatted(trainLabel, arrival.destinationName(), arrival.stationName());
+    }
+
+    private static String trainLabel(@Nullable TrainLine line) {
+        return line == null
+            ? "Holiday"
+            : "%s Line".formatted(formatLine(line));
+    }
+
+    private static String formatLine(TrainLine line) {
+        return switch (line) {
             case RED -> "Red";
             case BLUE -> "Blue";
             case BROWN -> "Brown";
@@ -96,15 +120,5 @@ public final class PostService {
             case PINK -> "Pink";
             case YELLOW -> "Yellow";
         };
-
-        return LINE_TEXT_TEMPLATE.formatted(lineString, arrival.destinationName(), arrival.stationName(), arrivalTime);
-    }
-
-    private @Nullable File generateMap(@Nullable Coordinates coordinates) {
-        if (coordinates == null) {
-            return null;
-        }
-
-        return this.mapboxService.generateMap(coordinates.latitude(), coordinates.longitude());
     }
 }
