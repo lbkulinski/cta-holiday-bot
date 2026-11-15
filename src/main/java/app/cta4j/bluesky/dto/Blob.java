@@ -9,11 +9,13 @@ import java.util.Objects;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @NullMarked
 public record Blob(
+    @JsonProperty("$type") String type,
     Ref ref,
     String mimeType,
     long size
 ) {
     public Blob {
+        Objects.requireNonNull(type);
         Objects.requireNonNull(ref);
         Objects.requireNonNull(mimeType);
 

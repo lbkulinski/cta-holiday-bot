@@ -1,12 +1,16 @@
 package app.cta4j.bluesky.client;
 
 import app.cta4j.bluesky.dto.Blob;
+import app.cta4j.bluesky.dto.CreateRecordRequest;
+import app.cta4j.bluesky.dto.Image;
+import app.cta4j.bluesky.dto.Record;
 import app.cta4j.bluesky.dto.Session;
 import app.cta4j.bluesky.dto.CreateSessionRequest;
 import app.cta4j.bluesky.dto.UploadBlobResponse;
 import app.cta4j.bluesky.exception.BlueskyException;
 import org.apache.hc.core5.net.URIBuilder;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -19,6 +23,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
+import java.time.Instant;
+import java.util.List;
 import java.util.Objects;
 
 @Component
@@ -29,11 +35,16 @@ public final class BlueskyClient {
 
     private static final String CREATE_SESSION_ENDPOINT = "/xrpc/com.atproto.server.createSession";
     private static final String UPLOAD_BLOB_ENDPOINT = "/xrpc/com.atproto.repo.uploadBlob";
+    private static final String CREATE_RECORD_ENDPOINT = "/xrpc/com.atproto.repo.createRecord";
 
     private static final URI CREATE_SESSION_URI;
     private static final URI UPLOAD_BLOB_URI;
+    private static final URI CREATE_RECORD_URI;
 
     private static final String AUTH_HEADER_TEMPLATE = "Bearer %s";
+
+    private static final String EMBED_TYPE = "app.bsky.embed.images";
+    private static final String RECORD_TYPE = "app.bsky.feed.post";
 
     static {
         try {
@@ -54,6 +65,16 @@ public final class BlueskyClient {
                 .build();
         } catch (URISyntaxException e) {
             throw new IllegalStateException("Failed to build URI for upload blob endpoint", e);
+        }
+
+        try {
+            CREATE_RECORD_URI = new URIBuilder()
+                .setScheme(SCHEME)
+                .setHost(HOST_NAME)
+                .appendPath(CREATE_RECORD_ENDPOINT)
+                .build();
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException("Failed to build URI for create record endpoint", e);
         }
     }
 
@@ -95,7 +116,7 @@ public final class BlueskyClient {
         Objects.requireNonNull(session);
         Objects.requireNonNull(file);
 
-        String authHeader = AUTH_HEADER_TEMPLATE.formatted(session.accessJwt());
+        var authHeader = AUTH_HEADER_TEMPLATE.formatted(session.accessJwt());
         var lengthHeader = String.valueOf(file.length());
 
         byte[] bytes;
@@ -127,5 +148,46 @@ public final class BlueskyClient {
         }
 
         return response.blob();
+    }
+
+    public Record createRecord(Session session, String text, @Nullable Image image) {
+        Objects.requireNonNull(text);
+
+        var authHeader = AUTH_HEADER_TEMPLATE.formatted(session.accessJwt());
+
+        CreateRecordRequest.Embed embed = null;
+
+        if (image != null) {
+            embed = new CreateRecordRequest.Embed(EMBED_TYPE, List.of(image));
+        }
+
+        var requestRecord = new CreateRecordRequest.Record(RECORD_TYPE, text, Instant.now(), embed);
+
+        var request = new CreateRecordRequest(session.did(), RECORD_TYPE, requestRecord);
+
+        Record record;
+
+        try {
+            record = this.restClient.post()
+                                    .uri(CREATE_RECORD_URI)
+                                    .header(HttpHeaders.AUTHORIZATION, authHeader)
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .body(request)
+                                    .retrieve()
+                                    .toEntity(Record.class)
+                                    .getBody();
+        } catch (RestClientException e) {
+            throw new BlueskyException("Failed to create record", e);
+        }
+
+        if (record == null) {
+            throw new BlueskyException("Failed to create record");
+        }
+
+        return record;
+    }
+
+    public Record createRecord(Session session, String text) {
+        return this.createRecord(session, text, null);
     }
 }
