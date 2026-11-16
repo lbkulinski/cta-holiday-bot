@@ -15,9 +15,15 @@ public record CreateMediaMetadataRequest(
         Objects.requireNonNull(metadata);
     }
 
-    public record Metadata(@JsonProperty("alt_text") String altText) {
+    public record Metadata(@JsonProperty("alt_text") AltText altText) {
         public Metadata {
             Objects.requireNonNull(altText);
+        }
+    }
+
+    public record AltText(String text) {
+        public AltText {
+            Objects.requireNonNull(text);
         }
     }
 }

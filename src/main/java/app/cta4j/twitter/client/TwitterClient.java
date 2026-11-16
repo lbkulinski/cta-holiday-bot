@@ -124,7 +124,9 @@ public final class TwitterClient {
         Objects.requireNonNull(mediaId);
         Objects.requireNonNull(altText);
 
-        var metadata = new CreateMediaMetadataRequest.Metadata(altText);
+        var alt = new CreateMediaMetadataRequest.AltText(altText);
+
+        var metadata = new CreateMediaMetadataRequest.Metadata(alt);
 
         var request = new CreateMediaMetadataRequest(mediaId, metadata);
 
