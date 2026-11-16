@@ -53,7 +53,7 @@ public final class BlueskyPublisher implements SocialPublisher {
 
         Blob blob = this.blueskyClient.uploadBlob(session, post.image().file());
 
-        var image = new ImageBlob(blob, post.image().alt());
+        var image = new ImageBlob(blob, post.image().altText());
 
         Record record = this.blueskyClient.createRecord(session, post.text(), image);
 

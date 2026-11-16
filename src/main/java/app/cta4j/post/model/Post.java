@@ -12,10 +12,10 @@ public record Post(String text, @Nullable Image image) {
         Objects.requireNonNull(text);
     }
 
-    public record Image(File file, String alt) {
+    public record Image(File file, String altText) {
         public Image {
             Objects.requireNonNull(file);
-            Objects.requireNonNull(alt);
+            Objects.requireNonNull(altText);
         }
     }
 }

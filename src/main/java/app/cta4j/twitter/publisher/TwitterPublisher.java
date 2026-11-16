@@ -46,6 +46,8 @@ public final class TwitterPublisher implements SocialPublisher {
 
         String mediaId = this.twitterClient.uploadMedia(file).id();
 
+        this.twitterClient.setMediaAltText(mediaId, post.image().altText());
+
         Tweet tweet = this.twitterClient.postTweet(post.text(), mediaId);
 
         log.info("Tweet created with ID {}", tweet.id());
