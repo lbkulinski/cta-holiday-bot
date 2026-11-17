@@ -5,11 +5,11 @@ import com.amazonaws.secretsmanager.caching.SecretCache;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.json.JsonMapper;
 
-@Service
+@Component
 @NullMarked
 public final class SecretsClient {
     private final SecretCache secretCache;

@@ -1,7 +1,7 @@
 package app.cta4j.post.service;
 
 import app.cta4j.post.model.Post;
-import app.cta4j.mapbox.service.MapboxService;
+import app.cta4j.mapbox.service.MapboxClient;
 import com.cta4j.common.geo.Coordinates;
 import com.cta4j.train.TrainApi;
 import com.cta4j.train.common.model.Arrival;
@@ -32,15 +32,15 @@ public final class PostService {
         "Map showing the current location of the %s train to %s, marked with a pin. It is heading to %s.";
 
     private final TrainApi trainApi;
-    private final MapboxService mapboxService;
+    private final MapboxClient mapboxClient;
 
     @Autowired
     public PostService(
         TrainApi trainApi,
-        MapboxService mapboxService
+        MapboxClient mapboxClient
     ) {
         this.trainApi = trainApi;
-        this.mapboxService = mapboxService;
+        this.mapboxClient = mapboxClient;
     }
 
     public @Nullable Post buildPost(String run) {
@@ -74,7 +74,7 @@ public final class PostService {
             return new Post(text, null);
         }
 
-        File file = this.generateMap(coordinates);
+        File file = this.mapboxClient.generateMap(coordinates);
         String alt = this.buildAlt(arrival);
 
         var image = new Post.Image(file, alt);
@@ -91,10 +91,6 @@ public final class PostService {
                                     .format(TIME_FORMAT);
 
         return TEXT_TEMPLATE.formatted(trainLabel, arrival.destinationName(), arrival.stationName(), arrivalTime);
-    }
-
-    private File generateMap(Coordinates coordinates) {
-        return this.mapboxService.generateMap(coordinates.latitude(), coordinates.longitude());
     }
 
     private String buildAlt(Arrival arrival) {
