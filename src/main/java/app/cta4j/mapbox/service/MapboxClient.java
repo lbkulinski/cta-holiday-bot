@@ -33,6 +33,9 @@ public final class MapboxClient {
 
     private static final String ACCESS_TOKEN_PARAM = "access_token";
 
+    private static final String FILENAME_PREFIX = "mapbox-";
+    private static final String FILENAME_SUFFIX = ".png";
+
     private final SecretsClient secretsClient;
 
     @Autowired
@@ -70,7 +73,7 @@ public final class MapboxClient {
         File tempFile;
 
         try {
-            tempFile = File.createTempFile("mapbox-", ".png");
+            tempFile = File.createTempFile(FILENAME_PREFIX, FILENAME_SUFFIX);
         } catch (IOException e) {
             throw new MapboxException("Failed to create temporary file for Mapbox image", e);
         }
