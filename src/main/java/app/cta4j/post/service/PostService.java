@@ -26,8 +26,7 @@ public final class PostService {
     private static final ZoneId ZONE = ZoneId.of("America/Chicago");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
 
-    private static final String TEXT_TEMPLATE =
-        "Sorry testing...\n%s train to %s will be arriving at %s at %s \uD83C\uDF85\uD83C\uDFFB";
+    private static final String TEXT_TEMPLATE = "%s train to %s will be arriving at %s at %s \uD83C\uDF85\uD83C\uDFFB";
     private static final String ALT_TEMPLATE =
         "Map showing the current location of the %s train to %s, marked with a pin. It is heading to %s.";
 
