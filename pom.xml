@@ -8,7 +8,7 @@
         <version>4.1.2</version>
         <relativePath/>
     </parent>
-    <groupId>app.cta4j</groupId>
+    <groupId>com.cta4j</groupId>
     <artifactId>cta-holiday-bot</artifactId>
     <version>2.0.0</version>
     <name>cta-holiday-bot</name>
