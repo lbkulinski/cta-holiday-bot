@@ -75,20 +75,16 @@ public final class BlueskyClient {
 
         var request = new CreateSessionRequest(identifier, password);
 
-        Session session;
-
         try {
-            session = this.restClient.post()
-                                     .uri(CREATE_SESSION_URI)
-                                     .contentType(MediaType.APPLICATION_JSON)
-                                     .body(request)
-                                     .retrieve()
-                                     .requiredBody(Session.class);
+            return this.restClient.post()
+                                  .uri(CREATE_SESSION_URI)
+                                  .contentType(MediaType.APPLICATION_JSON)
+                                  .body(request)
+                                  .retrieve()
+                                  .requiredBody(Session.class);
         } catch (RestClientException | IllegalStateException e) {
             throw new BlueskyException("Failed to create session", e);
         }
-
-        return session;
     }
 
     public Blob uploadBlob(Session session, File file) {
@@ -106,26 +102,19 @@ public final class BlueskyClient {
             throw new BlueskyException("Failed to read file while uploading blob", e);
         }
 
-        UploadBlobResponse response;
-
         try {
-            response = this.restClient.post()
-                                      .uri(UPLOAD_BLOB_URI)
-                                      .header(HttpHeaders.AUTHORIZATION, authHeader)
-                                      .header(HttpHeaders.CONTENT_LENGTH, lengthHeader)
-                                      .contentType(MediaType.IMAGE_PNG)
-                                      .body(bytes)
-                                      .retrieve()
-                                      .requiredBody(UploadBlobResponse.class);
+            return this.restClient.post()
+                                  .uri(UPLOAD_BLOB_URI)
+                                  .header(HttpHeaders.AUTHORIZATION, authHeader)
+                                  .header(HttpHeaders.CONTENT_LENGTH, lengthHeader)
+                                  .contentType(MediaType.IMAGE_PNG)
+                                  .body(bytes)
+                                  .retrieve()
+                                  .requiredBody(UploadBlobResponse.class)
+                                  .blob();
         } catch (RestClientException | IllegalStateException e) {
             throw new BlueskyException("Failed to upload blob", e);
         }
-
-        if (response.blob() == null) {
-            throw new BlueskyException("Failed to upload blob");
-        }
-
-        return response.blob();
     }
 
     public Record createRecord(Session session, String text, @Nullable ImageBlob image) {
@@ -143,21 +132,17 @@ public final class BlueskyClient {
 
         var request = new CreateRecordRequest(session.did(), RECORD_TYPE, requestRecord);
 
-        Record record;
-
         try {
-            record = this.restClient.post()
-                                    .uri(CREATE_RECORD_URI)
-                                    .header(HttpHeaders.AUTHORIZATION, authHeader)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                                    .body(request)
-                                    .retrieve()
-                                    .requiredBody(Record.class);
+            return this.restClient.post()
+                                  .uri(CREATE_RECORD_URI)
+                                  .header(HttpHeaders.AUTHORIZATION, authHeader)
+                                  .contentType(MediaType.APPLICATION_JSON)
+                                  .body(request)
+                                  .retrieve()
+                                  .requiredBody(Record.class);
         } catch (RestClientException | IllegalStateException e) {
             throw new BlueskyException("Failed to create record", e);
         }
-
-        return record;
     }
 
     public Record createRecord(Session session, String text) {

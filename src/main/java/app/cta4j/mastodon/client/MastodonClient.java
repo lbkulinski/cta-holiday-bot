@@ -70,7 +70,7 @@ public final class MastodonClient {
                                                .mastodon()
                                                .accessToken();
 
-        String authHeader = AUTH_HEADER_TEMPLATE.formatted(accessToken);
+        var authHeader = AUTH_HEADER_TEMPLATE.formatted(accessToken);
 
         var body = new LinkedMultiValueMap<String, Object>();
 
@@ -95,7 +95,7 @@ public final class MastodonClient {
                                                .mastodon()
                                                .accessToken();
 
-        String authHeader = AUTH_HEADER_TEMPLATE.formatted(accessToken);
+        var authHeader = AUTH_HEADER_TEMPLATE.formatted(accessToken);
 
         List<String> mediaIds = mediaId == null
             ? null

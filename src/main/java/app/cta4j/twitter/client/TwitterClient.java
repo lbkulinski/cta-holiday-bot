@@ -3,11 +3,9 @@ package app.cta4j.twitter.client;
 import app.cta4j.aws.dto.Secret;
 import app.cta4j.twitter.dto.CreateMediaMetadataRequest;
 import app.cta4j.twitter.dto.CreateMediaMetadataResponse;
-import app.cta4j.twitter.dto.CreateTweetMedia;
 import app.cta4j.twitter.dto.CreateTweetRequest;
 import app.cta4j.aws.client.SecretsClient;
 import app.cta4j.twitter.dto.CreateTweetResponse;
-import app.cta4j.twitter.dto.MediaMetadata;
 import app.cta4j.twitter.dto.Tweet;
 import app.cta4j.twitter.dto.Media;
 import app.cta4j.twitter.dto.UploadMediaRequest;
@@ -95,29 +93,19 @@ public final class TwitterClient {
             throw new TwitterException("Failed to read file while uploading media", e);
         }
 
-        String requestMedia = Base64.getEncoder().encodeToString(bytes);
+        var requestMedia = Base64.getEncoder().encodeToString(bytes);
 
         var request = new UploadMediaRequest(requestMedia, UPLOAD_MEDIA_CATEGORY);
 
-        String payload = this.jsonMapper.writeValueAsString(request);
+        var payload = this.jsonMapper.writeValueAsString(request);
 
         String body = this.post(UPLOAD_MEDIA_URL, payload);
 
-        UploadMediaResponse response;
-
         try {
-            response = this.jsonMapper.readValue(body, UploadMediaResponse.class);
+            return this.jsonMapper.readValue(body, UploadMediaResponse.class).data();
         } catch (JacksonException e) {
-            throw new TwitterException("Failed to deserialize upload media response", e);
+            throw new TwitterException("Failed to upload media", e);
         }
-
-        Media media = response.data();
-
-        if (media == null) {
-            throw new TwitterException("Failed to upload media");
-        }
-
-        return media;
     }
 
     public void setMediaAltText(String mediaId, String altText) {
@@ -130,55 +118,37 @@ public final class TwitterClient {
 
         var request = new CreateMediaMetadataRequest(mediaId, metadata);
 
-        String payload = this.jsonMapper.writeValueAsString(request);
+        var payload = this.jsonMapper.writeValueAsString(request);
 
         String body = this.post(CREATE_MEDIA_METADATA_URL, payload);
 
-        CreateMediaMetadataResponse response;
-
         try {
-            response = this.jsonMapper.readValue(body, CreateMediaMetadataResponse.class);
+            this.jsonMapper.readValue(body, CreateMediaMetadataResponse.class);
         } catch (JacksonException e) {
-            throw new TwitterException("Failed to deserialize set altText text response", e);
-        }
-
-        MediaMetadata mediaMetadata = response.data();
-
-        if (mediaMetadata == null) {
-            throw new TwitterException("Failed to set altText text");
+            throw new TwitterException("Failed to set altText text", e);
         }
     }
     
     public Tweet postTweet(String text, @Nullable String mediaId) {
         Objects.requireNonNull(text);
 
-        CreateTweetMedia media = null;
+        CreateTweetRequest.Media media = null;
 
         if (mediaId != null) {
-            media = new CreateTweetMedia(List.of(mediaId));
+            media = new CreateTweetRequest.Media(List.of(mediaId));
         }
 
         var request = new CreateTweetRequest(text, media);
 
-        String payload = this.jsonMapper.writeValueAsString(request);
+        var payload = this.jsonMapper.writeValueAsString(request);
 
         String body = this.post(CREATE_TWEET_URL, payload);
 
-        CreateTweetResponse response;
-
         try {
-            response = this.jsonMapper.readValue(body, CreateTweetResponse.class);
+            return this.jsonMapper.readValue(body, CreateTweetResponse.class).data();
         } catch (JacksonException e) {
-            throw new TwitterException("Failed to deserialize post tweet response", e);
+            throw new TwitterException("Failed to post tweet", e);
         }
-
-        Tweet data = response.data();
-
-        if (data == null) {
-            throw new TwitterException("Failed to post tweet");
-        }
-
-        return data;
     }
 
     public Tweet postTweet(String text) {

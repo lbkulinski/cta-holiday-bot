@@ -4,6 +4,7 @@ import app.cta4j.mapbox.exception.MapboxException;
 import app.cta4j.aws.client.SecretsClient;
 import com.cta4j.common.geo.Coordinates;
 import org.apache.commons.io.FileUtils;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Component
+@NullMarked
 public final class MapboxClient {
     private static final String SCHEME = "https";
     private static final String HOST = "api.mapbox.com";

@@ -9,7 +9,6 @@ import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
 import java.util.Objects;
 
 @Component
@@ -42,9 +41,7 @@ public final class TwitterPublisher implements SocialPublisher {
             return;
         }
 
-        File file = post.image().file();
-
-        String mediaId = this.twitterClient.uploadMedia(file).id();
+        String mediaId = this.twitterClient.uploadMedia(post.image().file()).id();
 
         this.twitterClient.setMediaAltText(mediaId, post.image().altText());
 

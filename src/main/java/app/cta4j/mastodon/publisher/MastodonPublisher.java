@@ -41,10 +41,7 @@ public final class MastodonPublisher implements SocialPublisher {
             return;
         }
 
-        Post.Image image = post.image();
-
-        String mediaId = this.mastodonClient.uploadMedia(image.file(), image.altText())
-                                            .id();
+        String mediaId = this.mastodonClient.uploadMedia(post.image().file(), post.image().altText()).id();
 
         Status status = this.mastodonClient.postStatus(post.text(), mediaId);
 
