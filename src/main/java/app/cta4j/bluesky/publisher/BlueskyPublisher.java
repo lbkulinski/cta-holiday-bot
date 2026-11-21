@@ -1,39 +1,35 @@
 package app.cta4j.bluesky.publisher;
 
-import app.cta4j.bluesky.dto.BlueskyBlob;
-import app.cta4j.bluesky.dto.BlueskyRecord;
+import app.cta4j.aws.client.SecretsClient;
+import app.cta4j.aws.dto.Secret;
+import app.cta4j.bluesky.client.BlueskyClient;
+import app.cta4j.bluesky.dto.Blob;
+import app.cta4j.bluesky.dto.ImageBlob;
+import app.cta4j.bluesky.dto.Record;
 import app.cta4j.bluesky.dto.Session;
-import app.cta4j.bluesky.service.BlueskyBlobService;
-import app.cta4j.bluesky.service.BlueskyRecordService;
-import app.cta4j.bluesky.service.BlueskySessionService;
-import app.cta4j.common.dto.Post;
+import app.cta4j.post.model.Post;
 import app.cta4j.common.publisher.SocialPublisher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-
 @Component
+@Slf4j
+@NullMarked
 public final class BlueskyPublisher implements SocialPublisher {
-    private static final Logger log = LoggerFactory.getLogger(BlueskyPublisher.class);
-
     private static final String PLATFORM_NAME = "Bluesky";
 
-    private final BlueskySessionService sessionService;
-    private final BlueskyBlobService blobService;
-    private final BlueskyRecordService recordService;
+    private final SecretsClient secretsClient;
+    private final BlueskyClient blueskyClient;
 
     @Autowired
     public BlueskyPublisher(
-        BlueskySessionService sessionService,
-        BlueskyBlobService blobService,
-        BlueskyRecordService recordService
+        SecretsClient secretsClient,
+        BlueskyClient blueskyClient
     ) {
-        this.sessionService = sessionService;
-        this.blobService = blobService;
-        this.recordService = recordService;
+        this.secretsClient = secretsClient;
+        this.blueskyClient = blueskyClient;
     }
 
     @Override
@@ -43,21 +39,23 @@ public final class BlueskyPublisher implements SocialPublisher {
 
     @Override
     public void publish(Post post) {
-        Session session = this.sessionService.createSession();
+        Secret.BlueskySecret secret = this.secretsClient.getSecret().bluesky();
 
-        if (post.media() == null) {
-            BlueskyRecord record = this.recordService.createRecord(session, post.text());
+        Session session = this.blueskyClient.createSession(secret.identifier(), secret.appPassword());
+
+        if (post.image() == null) {
+            Record record = this.blueskyClient.createRecord(session, post.text());
 
             log.info("Post without image created on Bluesky with ID {}", record.cid());
 
             return;
         }
 
-        File media = post.media();
+        Blob blob = this.blueskyClient.uploadBlob(session, post.image().file());
 
-        BlueskyBlob blob = this.blobService.uploadBlob(session, media);
+        var image = new ImageBlob(blob, post.image().altText());
 
-        BlueskyRecord record = this.recordService.createRecord(session, post.text(), blob);
+        Record record = this.blueskyClient.createRecord(session, post.text(), image);
 
         log.info("Post created on Bluesky with ID {}", record.cid());
     }

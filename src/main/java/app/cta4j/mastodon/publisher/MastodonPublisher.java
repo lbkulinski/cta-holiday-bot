@@ -1,33 +1,27 @@
 package app.cta4j.mastodon.publisher;
 
-import app.cta4j.common.dto.Post;
 import app.cta4j.common.publisher.SocialPublisher;
-import app.cta4j.mastodon.dto.MastodonStatus;
-import app.cta4j.mastodon.service.MastodonMediaService;
-import app.cta4j.mastodon.service.MastodonStatusService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import app.cta4j.mastodon.client.MastodonClient;
+import app.cta4j.mastodon.dto.Status;
+import app.cta4j.post.model.Post;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 
 @Component
+@Slf4j
+@NullMarked
 public final class MastodonPublisher implements SocialPublisher {
-    private static final Logger log = LoggerFactory.getLogger(MastodonPublisher.class);
-
     private static final String PLATFORM_NAME = "Mastodon";
 
-    private final MastodonMediaService mediaService;
-    private final MastodonStatusService statusService;
+    private final MastodonClient mastodonClient;
 
     @Autowired
-    public MastodonPublisher(
-        MastodonMediaService mediaService,
-        MastodonStatusService statusService
-    ) {
-        this.mediaService = mediaService;
-        this.statusService = statusService;
+    public MastodonPublisher(MastodonClient mastodonClient) {
+        this.mastodonClient = mastodonClient;
     }
 
     @Override
@@ -39,18 +33,17 @@ public final class MastodonPublisher implements SocialPublisher {
     public void publish(Post post) {
         Objects.requireNonNull(post);
 
-        if (post.media() == null) {
-            MastodonStatus status = this.statusService.postStatus(post.text());
+        if (post.image() == null) {
+            Status status = this.mastodonClient.postStatus(post.text(), null);
 
             log.info("Status created without image on Mastodon with ID {}", status.id());
 
             return;
         }
 
-        String mediaId = this.mediaService.uploadMedia(post.media())
-                                          .id();
+        String mediaId = this.mastodonClient.uploadMedia(post.image().file(), post.image().altText()).id();
 
-        MastodonStatus status = this.statusService.postStatus(post.text(), mediaId);
+        Status status = this.mastodonClient.postStatus(post.text(), mediaId);
 
         log.info("Status created on Mastodon with ID {}", status.id());
     }
