@@ -168,13 +168,19 @@ public final class TwitterClient {
         this.oAuth10aService.signRequest(accessToken, request);
 
         try (Response response = this.oAuth10aService.execute(request)) {
-            return response.getBody();
-        } catch (ExecutionException | IOException e) {
-            throw new TwitterException("Failed to make POST request", e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            if (response.isSuccessful()) {
+                return response.getBody();
+            }
 
-            throw new TwitterException("Failed to make POST request", e);
+            int statusCode = response.getCode();
+
+            throw new TwitterException("Failed to make POST request to %s. Status code: %d".formatted(url, statusCode));
+        } catch (ExecutionException | IOException | InterruptedException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+
+            throw new TwitterException("Failed to make POST request to %s".formatted(url), e);
         }
     }
 }

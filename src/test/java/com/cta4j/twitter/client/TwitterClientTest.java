@@ -14,6 +14,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -65,6 +67,7 @@ class TwitterClientTest {
 
         var response = mock(Response.class);
 
+        when(response.isSuccessful()).thenReturn(true);
         when(response.getBody()).thenReturn(body);
         when(this.oAuth10aService.execute(any(OAuthRequest.class))).thenReturn(response);
     }
@@ -140,6 +143,41 @@ class TwitterClientTest {
             """);
 
         assertThatThrownBy(() -> this.client.postTweet("hello")).isInstanceOf(TwitterException.class);
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {400, 401, 403, 429, 500})
+    void reportsEndpointAndStatusForUnsuccessfulResponses(int statusCode) throws Exception {
+        givenSecret();
+
+        var response = mock(Response.class);
+
+        when(response.isSuccessful()).thenReturn(false);
+        when(response.getCode()).thenReturn(statusCode);
+        when(this.oAuth10aService.execute(any(OAuthRequest.class))).thenReturn(response);
+
+        assertThatThrownBy(() -> this.client.postTweet("hello"))
+            .isInstanceOf(TwitterException.class)
+            .hasMessage("Failed to make POST request to %s. Status code: %d".formatted(TWEETS_URL, statusCode));
+    }
+
+    @Test
+    void doesNotReadTheBodyOfAnUnsuccessfulResponse(@TempDir Path dir) throws Exception {
+        givenSecret();
+
+        Path file = Files.write(dir.resolve("map.png"), new byte[] {1});
+
+        var response = mock(Response.class);
+
+        when(response.isSuccessful()).thenReturn(false);
+        when(response.getCode()).thenReturn(403);
+        when(this.oAuth10aService.execute(any(OAuthRequest.class))).thenReturn(response);
+
+        assertThatThrownBy(() -> this.client.uploadMedia(file.toFile()))
+            .isInstanceOf(TwitterException.class)
+            .hasMessageContaining(UPLOAD_URL);
+
+        verify(response, never()).getBody();
     }
 
     @Test
@@ -228,7 +266,7 @@ class TwitterClientTest {
 
         assertThatThrownBy(() -> this.client.postTweet("hello"))
             .isInstanceOf(TwitterException.class)
-            .hasMessage("Failed to make POST request")
+            .hasMessage("Failed to make POST request to " + TWEETS_URL)
             .hasCauseInstanceOf(ExecutionException.class);
 
         assertThat(Thread.currentThread().isInterrupted()).isFalse();
@@ -240,6 +278,7 @@ class TwitterClientTest {
 
         var response = mock(Response.class);
 
+        when(response.isSuccessful()).thenReturn(true);
         when(response.getBody()).thenThrow(new IOException("closed"));
         when(this.oAuth10aService.execute(any(OAuthRequest.class))).thenReturn(response);
 
