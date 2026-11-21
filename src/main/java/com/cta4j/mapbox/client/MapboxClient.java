@@ -1,8 +1,9 @@
-package com.cta4j.mapbox.service;
+package com.cta4j.mapbox.client;
 
 import com.cta4j.mapbox.exception.MapboxException;
 import com.cta4j.aws.client.SecretsClient;
 import com.cta4j.common.geo.Coordinates;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,10 +15,12 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
 import java.util.Map;
 import java.util.Objects;
 
 @Component
+@Slf4j
 @NullMarked
 public final class MapboxClient {
     private static final String SCHEME = "https";
@@ -83,6 +86,12 @@ public final class MapboxClient {
         try {
             FileUtils.copyURLToFile(url, tempFile);
         } catch (IOException e) {
+            try {
+                Files.delete(tempFile.toPath());
+            } catch (IOException ex) {
+                log.warn("Failed to delete temporary file", ex);
+            }
+
             throw new MapboxException("Failed to download Mapbox image to temporary file", e);
         }
 

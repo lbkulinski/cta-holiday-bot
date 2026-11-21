@@ -112,7 +112,7 @@ public final class MastodonClient {
                                   .retrieve()
                                   .requiredBody(Status.class);
         } catch (RestClientException | IllegalStateException e) {
-            throw new MastodonException("Failed to upload media", e);
+            throw new MastodonException("Failed to post status", e);
         }
     }
 }

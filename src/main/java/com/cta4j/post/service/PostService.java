@@ -1,7 +1,7 @@
 package com.cta4j.post.service;
 
 import com.cta4j.post.model.Post;
-import com.cta4j.mapbox.service.MapboxClient;
+import com.cta4j.mapbox.client.MapboxClient;
 import com.cta4j.common.geo.Coordinates;
 import com.cta4j.train.TrainApi;
 import com.cta4j.train.common.model.Arrival;

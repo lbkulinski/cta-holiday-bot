@@ -169,7 +169,11 @@ public final class TwitterClient {
 
         try (Response response = this.oAuth10aService.execute(request)) {
             return response.getBody();
-        } catch (ExecutionException | InterruptedException | IOException e) {
+        } catch (ExecutionException | IOException e) {
+            throw new TwitterException("Failed to make POST request", e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+
             throw new TwitterException("Failed to make POST request", e);
         }
     }

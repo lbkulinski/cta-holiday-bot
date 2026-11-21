@@ -118,6 +118,7 @@ public final class BlueskyClient {
     }
 
     public Record createRecord(Session session, String text, @Nullable ImageBlob image) {
+        Objects.requireNonNull(session);
         Objects.requireNonNull(text);
 
         var authHeader = AUTH_HEADER_TEMPLATE.formatted(session.accessJwt());
