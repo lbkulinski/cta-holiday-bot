@@ -6,7 +6,7 @@ on:
 
 concurrency:
   group: deploy-main
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   id-token: write
@@ -17,13 +17,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup JDK
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: corretto
-          java-version: '21'
+          java-version: 25
+          cache: maven
 
       - name: Read project version from pom.xml
         id: ver
@@ -31,8 +32,15 @@ jobs:
           VERSION=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive org.codehaus.mojo:exec-maven-plugin:3.5.0:exec)
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Check that the tag matches the pom version
+        run: |
+          if [ "${GITHUB_REF_NAME#v}" != "${{ steps.ver.outputs.version }}" ]; then
+            echo "Tag ${GITHUB_REF_NAME} does not match pom version ${{ steps.ver.outputs.version }}" >&2
+            exit 1
+          fi
+
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
@@ -41,7 +49,7 @@ jobs:
         id: package
         run: |
           set -Eeuo pipefail
-          mvn -B clean package shade:shade
+          mvn -B clean verify
           BUILD_DIR=$(mvn help:evaluate -Dexpression=project.build.directory -q -DforceStdout)
           JAR_FILE=$(ls "${BUILD_DIR}" | grep '.jar$' | grep -v '^original')
           DEPLOY_DIR="${BUILD_DIR}/deployment"
@@ -55,12 +63,36 @@ jobs:
           aws s3 cp "$FILE" "s3://${{ secrets.S3_BUCKET_NAME }}/${{ github.sha }}.jar"
 
       - name: Update Lambda from S3
+        id: lambda
         run: |
-          aws lambda update-function-code \
+          VERSION=$(aws lambda update-function-code \
             --function-name "${{ secrets.LAMBDA_FUNCTION_NAME }}" \
             --s3-bucket "${{ secrets.S3_BUCKET_NAME }}" \
             --s3-key "${{ github.sha }}.jar" \
-            --publish
+            --publish \
+            --query Version \
+            --output text)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the published version to be active
+        run: |
+          aws lambda wait published-version-active \
+            --function-name "${{ secrets.LAMBDA_FUNCTION_NAME }}" \
+            --qualifier "${{ steps.lambda.outputs.version }}"
+
+      - name: Point the live alias at the new version
+        run: |
+          FUNCTION_NAME="${{ secrets.LAMBDA_FUNCTION_NAME }}"
+          VERSION="${{ steps.lambda.outputs.version }}"
+
+          if OUTPUT=$(aws lambda get-alias --function-name "$FUNCTION_NAME" --name live 2>&1); then
+            aws lambda update-alias --function-name "$FUNCTION_NAME" --name live --function-version "$VERSION"
+          elif grep -q "ResourceNotFoundException" <<< "$OUTPUT"; then
+            aws lambda create-alias --function-name "$FUNCTION_NAME" --name live --function-version "$VERSION"
+          else
+            echo "$OUTPUT" >&2
+            exit 1
+          fi
 
       - name: Extract release notes from CHANGELOG.md
         id: notes
@@ -73,7 +105,7 @@ jobs:
           echo "path=RELEASE_NOTES.md" >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub Release using CHANGELOG section
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: cta-holiday-bot ${{ github.ref_name }}
