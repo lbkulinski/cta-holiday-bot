@@ -55,12 +55,33 @@ jobs:
           aws s3 cp "$FILE" "s3://${{ secrets.S3_BUCKET_NAME }}/${{ github.sha }}.jar"
 
       - name: Update Lambda from S3
+        id: lambda
         run: |
-          aws lambda update-function-code \
+          VERSION=$(aws lambda update-function-code \
             --function-name "${{ secrets.LAMBDA_FUNCTION_NAME }}" \
             --s3-bucket "${{ secrets.S3_BUCKET_NAME }}" \
             --s3-key "${{ github.sha }}.jar" \
-            --publish
+            --publish \
+            --query Version \
+            --output text)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for the published version to be active
+        run: |
+          aws lambda wait published-version-active \
+            --function-name "${{ secrets.LAMBDA_FUNCTION_NAME }}" \
+            --qualifier "${{ steps.lambda.outputs.version }}"
+
+      - name: Point the live alias at the new version
+        run: |
+          FUNCTION_NAME="${{ secrets.LAMBDA_FUNCTION_NAME }}"
+          VERSION="${{ steps.lambda.outputs.version }}"
+
+          if aws lambda get-alias --function-name "$FUNCTION_NAME" --name live > /dev/null 2>&1; then
+            aws lambda update-alias --function-name "$FUNCTION_NAME" --name live --function-version "$VERSION"
+          else
+            aws lambda create-alias --function-name "$FUNCTION_NAME" --name live --function-version "$VERSION"
+          fi
 
       - name: Extract release notes from CHANGELOG.md
         id: notes

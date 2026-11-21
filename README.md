@@ -91,7 +91,10 @@ the environment variables above and AWS credentials that can read the secret.
 - Package with `./mvnw clean verify`, which produces the shaded JAR at `target/cta-holiday-bot-<version>.jar`
 - Upload the shaded JAR to AWS Lambda (Java 25 runtime)
 - Use Spring Cloud Function's AWS adapter as the handler to invoke the `socialPublisher` function
-- Pushing a `v*` tag runs the release workflow, which builds, deploys to Lambda, and creates a GitHub release
+- Pushing a `v*` tag runs the release workflow, which builds, publishes a new Lambda version, moves the `live` alias to
+  it, and creates a GitHub release
+- Point your trigger (e.g. EventBridge) at the `live` alias ARN, which the first release creates. Enabling SnapStart for
+  published versions reduces cold starts, but only invocations through the alias or a version use it
 
 ## Testing
 ```bash

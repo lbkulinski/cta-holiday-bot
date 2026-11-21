@@ -37,6 +37,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The temporary Mapbox image file is now deleted if the download fails.
 - The build workflows now run `mvn clean verify` (tests and the coverage check) on Corretto 25 with the Maven cache from
   `setup-java`, and the release workflow was updated to JDK 25 and current action versions.
+- The release workflow now waits for the published Lambda version to become active (needed for SnapStart) and moves the
+  `live` alias to it, creating the alias on the first release. Point the EventBridge rule at the alias.
 - Bump `org.springframework.boot:spring-boot-starter-parent` from `4.0.0` to `4.2.0`.
 - Bump `com.cta4j:cta4j-java-sdk` from `3.0.3` to `8.0.1`.
 - Bump the AWS SDK BOM from `2.38.7` to `2.59.3`.
