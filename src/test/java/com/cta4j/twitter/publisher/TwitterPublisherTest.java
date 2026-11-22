@@ -56,7 +56,7 @@ class TwitterPublisherTest {
     void uploadsMediaSetsAltTextThenPostsTweet() {
         var file = new File("map.png");
 
-        when(this.twitterClient.uploadMedia(file)).thenReturn(new Media("m1", "key"));
+        when(this.twitterClient.uploadMedia(file)).thenReturn(new Media("m1"));
         when(this.twitterClient.postTweet("hello", "m1")).thenReturn(new Tweet("t1", "hello"));
 
         this.publisher.publish(new Post("hello", new Post.Image(file, "alt text")));
@@ -72,7 +72,7 @@ class TwitterPublisherTest {
     void doesNotPostTweetWhenAltTextFails() {
         var file = new File("map.png");
 
-        when(this.twitterClient.uploadMedia(file)).thenReturn(new Media("m1", "key"));
+        when(this.twitterClient.uploadMedia(file)).thenReturn(new Media("m1"));
         org.mockito.Mockito.doThrow(new TwitterException("fail", null))
                            .when(this.twitterClient).setMediaAltText("m1", "alt");
 
