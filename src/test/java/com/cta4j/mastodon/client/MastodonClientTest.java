@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.header;
@@ -151,5 +152,13 @@ class MastodonClientTest {
         this.server.expect(requestTo("https://mastodon.social/api/v1/statuses")).andRespond(withSuccess());
 
         assertThatThrownBy(() -> this.client.postStatus("hello", null)).isInstanceOf(MastodonException.class);
+    }
+
+    @Test
+    void postStatusRejectsNullTextBeforeTouchingSecretsOrApi() {
+        assertThatNullPointerException().isThrownBy(() -> this.client.postStatus(null, null));
+
+        verifyNoInteractions(this.secretsClient);
+        this.server.verify();
     }
 }
