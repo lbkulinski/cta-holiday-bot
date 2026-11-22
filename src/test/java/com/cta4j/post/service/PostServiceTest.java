@@ -2,6 +2,7 @@ package com.cta4j.post.service;
 
 import com.cta4j.common.geo.Coordinates;
 import com.cta4j.mapbox.client.MapboxClient;
+import com.cta4j.mapbox.exception.MapboxException;
 import com.cta4j.post.model.Post;
 import com.cta4j.train.TrainApi;
 import com.cta4j.train.common.model.Arrival;
@@ -10,6 +11,7 @@ import com.cta4j.train.common.model.TrainDirection;
 import com.cta4j.train.common.model.TrainLine;
 import com.cta4j.train.follow.FollowApi;
 import com.cta4j.train.follow.model.FollowTrain;
+import com.rollbar.notifier.Rollbar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -52,11 +55,14 @@ class PostServiceTest {
     @Mock
     private MapboxClient mapboxClient;
 
+    @Mock
+    private Rollbar rollbar;
+
     private PostService postService;
 
     @BeforeEach
     void setUp() {
-        this.postService = new PostService(this.trainApi, this.mapboxClient);
+        this.postService = new PostService(this.trainApi, this.mapboxClient, this.rollbar);
     }
 
     private void givenFollowTrain(FollowTrain followTrain) {
@@ -92,7 +98,7 @@ class PostServiceTest {
 
         assertThat(this.postService.buildPost(RUN)).isNull();
 
-        verifyNoInteractions(this.mapboxClient);
+        verifyNoInteractions(this.mapboxClient, this.rollbar);
     }
 
     @Test
@@ -101,7 +107,7 @@ class PostServiceTest {
 
         assertThat(this.postService.buildPost(RUN)).isNull();
 
-        verifyNoInteractions(this.mapboxClient);
+        verifyNoInteractions(this.mapboxClient, this.rollbar);
     }
 
     @Test
@@ -123,6 +129,7 @@ class PostServiceTest {
         assertThat(post.image().altText()).isEqualTo(
             "Map showing the current location of the Red Line train to 95th/Dan Ryan, marked with a pin. "
                 + "It is heading to Howard.");
+        verifyNoInteractions(this.rollbar);
     }
 
     @Test
@@ -224,7 +231,7 @@ class PostServiceTest {
         assertThat(post).isNotNull();
         assertThat(post.image()).isNull();
         assertThat(post.text()).startsWith("Red Line train to Dest");
-        verifyNoInteractions(this.mapboxClient);
+        verifyNoInteractions(this.mapboxClient, this.rollbar);
     }
 
     @Test
@@ -237,5 +244,36 @@ class PostServiceTest {
         this.postService.buildPost(RUN);
 
         verify(this.mapboxClient).generateMap(COORDINATES);
+    }
+
+    @Test
+    void fallsBackToTextOnlyPostAndReportsToRollbarWhenMapGenerationFails() {
+        var arrival = arrival(TrainLine.RED, "Howard", "95th/Dan Ryan", NOON_THIRTY_CHICAGO);
+        var failure = new MapboxException("Failed to download Mapbox image to temporary file");
+
+        givenFollowTrain(new FollowTrain(COORDINATES, List.of(arrival)));
+        when(this.mapboxClient.generateMap(COORDINATES)).thenThrow(failure);
+
+        Post post = this.postService.buildPost(RUN);
+
+        assertThat(post).isNotNull();
+        assertThat(post.text())
+            .isEqualTo("Red Line train to 95th/Dan Ryan will be arriving at Howard at 12:30 PM 🎅🏻");
+        assertThat(post.image()).isNull();
+        verify(this.rollbar).error(failure, "Failed to generate Mapbox image");
+    }
+
+    @Test
+    void propagatesNonMapboxExceptionsWithoutReportingToRollbar() {
+        var arrival = arrival(TrainLine.RED, "Howard", "Dest", NOON_THIRTY_CHICAGO);
+
+        givenFollowTrain(new FollowTrain(COORDINATES, List.of(arrival)));
+        when(this.mapboxClient.generateMap(COORDINATES)).thenThrow(new IllegalStateException("boom"));
+
+        assertThatExceptionOfType(IllegalStateException.class)
+            .isThrownBy(() -> this.postService.buildPost(RUN))
+            .withMessage("boom");
+
+        verifyNoInteractions(this.rollbar);
     }
 }

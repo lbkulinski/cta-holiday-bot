@@ -1,5 +1,6 @@
 package com.cta4j.post.service;
 
+import com.cta4j.mapbox.exception.MapboxException;
 import com.cta4j.post.model.Post;
 import com.cta4j.mapbox.client.MapboxClient;
 import com.cta4j.common.geo.Coordinates;
@@ -7,6 +8,8 @@ import com.cta4j.train.TrainApi;
 import com.cta4j.train.common.model.Arrival;
 import com.cta4j.train.common.model.TrainLine;
 import com.cta4j.train.follow.model.FollowTrain;
+import com.rollbar.notifier.Rollbar;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
+@Slf4j
 @NullMarked
 public final class PostService {
     private static final ZoneId ZONE = ZoneId.of("America/Chicago");
@@ -32,14 +36,17 @@ public final class PostService {
 
     private final TrainApi trainApi;
     private final MapboxClient mapboxClient;
+    private final Rollbar rollbar;
 
     @Autowired
     public PostService(
         TrainApi trainApi,
-        MapboxClient mapboxClient
+        MapboxClient mapboxClient,
+        Rollbar rollbar
     ) {
         this.trainApi = trainApi;
         this.mapboxClient = mapboxClient;
+        this.rollbar = rollbar;
     }
 
     public @Nullable Post buildPost(String run) {
@@ -73,7 +80,19 @@ public final class PostService {
             return new Post(text, null);
         }
 
-        File file = this.mapboxClient.generateMap(coordinates);
+        File file;
+
+        try {
+            file = this.mapboxClient.generateMap(coordinates);
+        } catch (MapboxException e) {
+            var message = "Failed to generate Mapbox image";
+
+            log.error(message, e);
+            this.rollbar.error(e, message);
+
+            return new Post(text, null);
+        }
+
         String alt = this.buildAlt(arrival);
 
         var image = new Post.Image(file, alt);
