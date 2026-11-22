@@ -249,7 +249,7 @@ class TwitterClientTest {
 
         assertThatThrownBy(() -> this.client.setMediaAltText("m1", "alt"))
             .isInstanceOf(TwitterException.class)
-            .hasMessage("Failed to set altText text");
+            .hasMessage("Failed to set alt text");
     }
 
     @Test
