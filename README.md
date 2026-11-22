@@ -15,6 +15,10 @@ This bot posts arrival updates, map snapshots, and route information to platform
 - Generates PNG images (600×400 at 2x, i.e. 1200×800)
 - Adds alt text describing the map to every image
 - Handles media upload for each platform
+- Downloads the map with a 5 second connect timeout and a 10 second read timeout
+- Falls back to a text-only post if the map cannot be generated, or if the image upload fails on a platform. The
+  failure is logged and reported to Rollbar. If only the Twitter/X alt text fails, the tweet is still posted with the
+  image
 
 ### Social Media Posting
 | Platform  | Supported | Notes |
@@ -30,7 +34,7 @@ This bot posts arrival updates, map snapshots, and route information to platform
 - Spring `RestClient` for Bluesky and Mastodon
 - ScribeJava (OAuth 1.0a) for Twitter/X
 - AWS Secrets Manager for credentials, with caching
-- Rollbar for error reporting
+- Rollbar for error reporting, including image failures that fall back to a text-only post
 - Deployed to AWS Lambda
 
 ## Getting Started
@@ -81,6 +85,14 @@ The application expects a JSON object in AWS Secrets Manager with the following 
 For Twitter/X, use the consumer keys and the posting account's access token and secret from the X developer portal
 (OAuth 1.0a). These do not expire, so no refresh flow is needed.
 
+The secret is read through the AWS Secrets Manager caching library, but not every value is read at the same time:
+
+- Read on every request, so a rotated value is picked up when the cache expires: the Twitter/X access token and access
+  token secret, the Bluesky credentials, the Mastodon access token, and the Mapbox access token.
+- Read once at startup: the Twitter/X consumer key and consumer key secret, the CTA train API key, and the Rollbar
+  access token. With SnapStart, this is when the snapshot is taken. After rotating any of these, publish a new Lambda
+  version (a new deployment) so the change takes effect.
+
 ### 4. Run Locally
 The application is built to run as an AWS Lambda function, so it does not include a local entrypoint. To run it on your
 machine, write your own runner, for example a `CommandLineRunner` bean that builds a post with `PostService` and
@@ -116,7 +128,8 @@ The image has alt text:
 > Map showing the current location of the Red Line train to Howard, marked with a pin. It is heading to Belmont.
 
 When the arrival has no line, the text says "Holiday train" instead, for example "Holiday train to Howard will be
-arriving at Belmont…". If the train's position isn't available, the post is text only.
+arriving at Belmont…". The post is text only if the train's position isn't available, the map can't be generated, or
+the image upload fails.
 
 ## Future Enhancements
 - Full Threads API integration
