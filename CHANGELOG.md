@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - A failed image upload no longer stops a post on any platform. The Twitter/X, Bluesky, and Mastodon publishers now log
   the failure, report it to Rollbar, and publish a text-only post. If only the Twitter/X alt text fails, the tweet is
   still posted with the image.
+- The Twitter/X publisher no longer falls back to a text-only tweet, or posts after a failed alt text call, when the
+  failure happened because the thread was interrupted. It rethrows instead, so no further request is made.
 - `TwitterClient` now reports "Failed to set alt text" instead of "Failed to set altText text" when the alt text
   response cannot be parsed.
 - The Twitter/X `Media` response no longer requires `media_key`, which was never used. Only `id` is read.
