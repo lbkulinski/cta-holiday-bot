@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
@@ -106,6 +107,55 @@ class TwitterPublisherTest {
         verify(this.twitterClient).postTweet("hello", "m1");
         verify(this.rollbar).error(failure, "Failed to set media alt text on Twitter");
         verify(this.rollbar, never()).error(any(Throwable.class), eq("Failed to upload post media to Twitter"));
+    }
+
+    @Test
+    void rethrowsWithoutFallbackWhenMediaUploadIsInterrupted() {
+        var file = new File("map.png");
+        var failure = new TwitterException("interrupted");
+
+        // Like TwitterClient.post, restore the interrupt flag before throwing.
+        when(this.twitterClient.uploadMedia(file)).thenAnswer(invocation -> {
+            Thread.currentThread().interrupt();
+
+            throw failure;
+        });
+
+        var post = new Post("hello", new Post.Image(file, "alt"));
+
+        try {
+            assertThatThrownBy(() -> this.publisher.publish(post)).isSameAs(failure);
+        } finally {
+            Thread.interrupted();
+        }
+
+        verify(this.twitterClient, never()).setMediaAltText(anyString(), anyString());
+        verify(this.twitterClient, never()).postTweet(anyString(), any());
+        verifyNoInteractions(this.rollbar);
+    }
+
+    @Test
+    void rethrowsWithoutPostingWhenAltTextIsInterrupted() {
+        var file = new File("map.png");
+        var failure = new TwitterException("interrupted");
+
+        when(this.twitterClient.uploadMedia(file)).thenReturn(new Media("m1"));
+        doAnswer(invocation -> {
+            Thread.currentThread().interrupt();
+
+            throw failure;
+        }).when(this.twitterClient).setMediaAltText("m1", "alt");
+
+        var post = new Post("hello", new Post.Image(file, "alt"));
+
+        try {
+            assertThatThrownBy(() -> this.publisher.publish(post)).isSameAs(failure);
+        } finally {
+            Thread.interrupted();
+        }
+
+        verify(this.twitterClient, never()).postTweet(anyString(), any());
+        verifyNoInteractions(this.rollbar);
     }
 
     @Test

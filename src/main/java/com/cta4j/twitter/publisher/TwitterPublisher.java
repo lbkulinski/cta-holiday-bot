@@ -53,6 +53,10 @@ public final class TwitterPublisher implements SocialPublisher {
         try {
             mediaId = this.twitterClient.uploadMedia(post.image().file()).id();
         } catch (TwitterException e) {
+            if (Thread.currentThread().isInterrupted()) {
+                throw e;
+            }
+
             var message = "Failed to upload post media to Twitter";
 
             log.error(message, e);
@@ -63,6 +67,10 @@ public final class TwitterPublisher implements SocialPublisher {
             try {
                 this.twitterClient.setMediaAltText(mediaId, post.image().altText());
             } catch (TwitterException e) {
+                if (Thread.currentThread().isInterrupted()) {
+                    throw e;
+                }
+
                 var message = "Failed to set media alt text on Twitter";
 
                 log.error(message, e);
