@@ -9,6 +9,7 @@ import com.cta4j.bluesky.dto.Record;
 import com.cta4j.bluesky.dto.Session;
 import com.cta4j.bluesky.exception.BlueskyException;
 import com.cta4j.post.model.Post;
+import com.rollbar.notifier.Rollbar;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.any;
 
@@ -38,11 +40,14 @@ class BlueskyPublisherTest {
     @Mock
     private BlueskyClient blueskyClient;
 
+    @Mock
+    private Rollbar rollbar;
+
     private BlueskyPublisher publisher;
 
     @BeforeEach
     void setUp() {
-        this.publisher = new BlueskyPublisher(this.secretsClient, this.blueskyClient);
+        this.publisher = new BlueskyPublisher(this.secretsClient, this.blueskyClient, this.rollbar);
     }
 
     private void givenSession() {
@@ -67,6 +72,7 @@ class BlueskyPublisherTest {
 
         verify(this.blueskyClient).createRecord(SESSION, "hello");
         verify(this.blueskyClient, never()).uploadBlob(any(), any());
+        verifyNoInteractions(this.rollbar);
     }
 
     @Test
@@ -87,6 +93,56 @@ class BlueskyPublisherTest {
         order.verify(this.blueskyClient).createSession("user.bsky.social", "pw");
         order.verify(this.blueskyClient).uploadBlob(SESSION, file);
         order.verify(this.blueskyClient).createRecord(SESSION, "hello", image);
+        verifyNoInteractions(this.rollbar);
+    }
+
+    @Test
+    void fallsBackToTextOnlyRecordAndReportsWhenBlobUploadFails() {
+        givenSession();
+
+        var file = new File("map.png");
+        var failure = new BlueskyException("upload failed", null);
+
+        when(this.blueskyClient.uploadBlob(SESSION, file)).thenThrow(failure);
+        when(this.blueskyClient.createRecord(SESSION, "hello", null)).thenReturn(RECORD);
+
+        this.publisher.publish(new Post("hello", new Post.Image(file, "alt text")));
+
+        verify(this.blueskyClient).createRecord(SESSION, "hello", null);
+        verify(this.rollbar).error(failure, "Failed to upload post blob to Bluesky");
+    }
+
+    @Test
+    void propagatesFailureOfTheFallbackRecord() {
+        givenSession();
+
+        var file = new File("map.png");
+
+        when(this.blueskyClient.uploadBlob(SESSION, file)).thenThrow(new BlueskyException("upload failed", null));
+        when(this.blueskyClient.createRecord(SESSION, "hello", null))
+            .thenThrow(new BlueskyException("record failed", null));
+
+        var post = new Post("hello", new Post.Image(file, "alt text"));
+
+        assertThatThrownBy(() -> this.publisher.publish(post))
+            .isInstanceOf(BlueskyException.class)
+            .hasMessage("record failed");
+    }
+
+    @Test
+    void doesNotFallBackOnNonBlueskyExceptions() {
+        givenSession();
+
+        var file = new File("map.png");
+
+        when(this.blueskyClient.uploadBlob(SESSION, file)).thenThrow(new IllegalStateException("boom"));
+
+        var post = new Post("hello", new Post.Image(file, "alt text"));
+
+        assertThatThrownBy(() -> this.publisher.publish(post)).isInstanceOf(IllegalStateException.class);
+
+        verify(this.blueskyClient, never()).createRecord(any(), any(), any());
+        verifyNoInteractions(this.rollbar);
     }
 
     @Test

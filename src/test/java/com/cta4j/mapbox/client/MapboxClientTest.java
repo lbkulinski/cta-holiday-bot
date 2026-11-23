@@ -8,6 +8,8 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -17,18 +19,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.SocketTimeoutException;
 import java.net.URL;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNullPointerException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 /**
- * The download goes through {@link FileUtils#copyURLToFile(URL, File)}, which is mocked statically so that these
- * tests never touch the network.
+ * The download goes through {@link FileUtils#copyURLToFile(URL, File, int, int)}, which is mocked statically so that
+ * these tests never touch the network.
  */
 @ExtendWith(MockitoExtension.class)
 class MapboxClientTest {
@@ -57,7 +62,11 @@ class MapboxClientTest {
             var urlCaptor = ArgumentCaptor.forClass(URL.class);
             var fileCaptor = ArgumentCaptor.forClass(File.class);
 
-            fileUtils.verify(() -> FileUtils.copyURLToFile(urlCaptor.capture(), fileCaptor.capture()));
+            fileUtils.verify(() -> FileUtils.copyURLToFile(
+                urlCaptor.capture(),
+                fileCaptor.capture(),
+                eq(5_000),
+                eq(10_000)));
 
             URL url = urlCaptor.getValue();
 
@@ -85,16 +94,57 @@ class MapboxClientTest {
         var fileCaptor = ArgumentCaptor.forClass(File.class);
 
         try (MockedStatic<FileUtils> fileUtils = Mockito.mockStatic(FileUtils.class)) {
-            fileUtils.when(() -> FileUtils.copyURLToFile(any(URL.class), fileCaptor.capture()))
+            fileUtils.when(() -> FileUtils.copyURLToFile(any(URL.class), fileCaptor.capture(), anyInt(), anyInt()))
                      .thenThrow(new IOException("network down"));
 
             assertThatThrownBy(() -> this.client.generateMap(COORDINATES))
                 .isInstanceOf(MapboxException.class)
                 .hasMessage("Failed to download Mapbox image to temporary file")
-                .hasCauseInstanceOf(IOException.class);
+                .hasNoCause();
         }
 
         assertThat(fileCaptor.getValue()).doesNotExist();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"Connect timed out", "Read timed out"})
+    void wrapsTimeoutsAndDeletesTempFile(String timeoutMessage) {
+        when(this.secretsClient.getSecret()).thenReturn(TestSecrets.secret());
+
+        var fileCaptor = ArgumentCaptor.forClass(File.class);
+
+        try (MockedStatic<FileUtils> fileUtils = Mockito.mockStatic(FileUtils.class)) {
+            fileUtils.when(() -> FileUtils.copyURLToFile(any(URL.class), fileCaptor.capture(), anyInt(), anyInt()))
+                     .thenThrow(new SocketTimeoutException(timeoutMessage));
+
+            assertThatThrownBy(() -> this.client.generateMap(COORDINATES))
+                .isInstanceOf(MapboxException.class)
+                .hasMessage("Failed to download Mapbox image to temporary file")
+                .hasNoCause();
+        }
+
+        assertThat(fileCaptor.getValue()).doesNotExist();
+    }
+
+    @Test
+    void doesNotLeakAccessTokenThroughTheException() {
+        when(this.secretsClient.getSecret()).thenReturn(TestSecrets.secret());
+
+        var leakyMessage = "Server returned HTTP response code: 401 for URL: "
+            + "https://api.mapbox.com/x?access_token=" + TestSecrets.MAPBOX_TOKEN;
+
+        try (MockedStatic<FileUtils> fileUtils = Mockito.mockStatic(FileUtils.class)) {
+            fileUtils.when(() -> FileUtils.copyURLToFile(any(URL.class), any(File.class), anyInt(), anyInt()))
+                     .thenThrow(new IOException(leakyMessage));
+
+            assertThatThrownBy(() -> this.client.generateMap(COORDINATES))
+                .isInstanceOf(MapboxException.class)
+                .satisfies(e -> {
+                    assertThat(e).hasNoCause();
+                    assertThat(e.getMessage()).doesNotContain(TestSecrets.MAPBOX_TOKEN);
+                    assertThat(e.getStackTrace()).isNotEmpty();
+                });
+        }
     }
 
     @Test

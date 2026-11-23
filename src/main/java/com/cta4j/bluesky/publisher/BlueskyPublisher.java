@@ -7,8 +7,10 @@ import com.cta4j.bluesky.dto.Blob;
 import com.cta4j.bluesky.dto.ImageBlob;
 import com.cta4j.bluesky.dto.Record;
 import com.cta4j.bluesky.dto.Session;
+import com.cta4j.bluesky.exception.BlueskyException;
 import com.cta4j.post.model.Post;
 import com.cta4j.common.publisher.SocialPublisher;
+import com.rollbar.notifier.Rollbar;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,14 +24,17 @@ public final class BlueskyPublisher implements SocialPublisher {
 
     private final SecretsClient secretsClient;
     private final BlueskyClient blueskyClient;
+    private final Rollbar rollbar;
 
     @Autowired
     public BlueskyPublisher(
         SecretsClient secretsClient,
-        BlueskyClient blueskyClient
+        BlueskyClient blueskyClient,
+        Rollbar rollbar
     ) {
         this.secretsClient = secretsClient;
         this.blueskyClient = blueskyClient;
+        this.rollbar = rollbar;
     }
 
     @Override
@@ -51,9 +56,18 @@ public final class BlueskyPublisher implements SocialPublisher {
             return;
         }
 
-        Blob blob = this.blueskyClient.uploadBlob(session, post.image().file());
+        ImageBlob image = null;
 
-        var image = new ImageBlob(blob, post.image().altText());
+        try {
+            Blob blob = this.blueskyClient.uploadBlob(session, post.image().file());
+
+            image = new ImageBlob(blob, post.image().altText());
+        } catch (BlueskyException e) {
+            var message = "Failed to upload post blob to Bluesky";
+
+            log.error(message, e);
+            this.rollbar.error(e, message);
+        }
 
         Record record = this.blueskyClient.createRecord(session, post.text(), image);
 

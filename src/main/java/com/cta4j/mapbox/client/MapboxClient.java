@@ -41,6 +41,9 @@ public final class MapboxClient {
     private static final String FILENAME_PREFIX = "mapbox-";
     private static final String FILENAME_SUFFIX = ".png";
 
+    private static final int CONNECTION_TIMEOUT_MS = 5_000;
+    private static final int READ_TIMEOUT_MS = 10_000;
+
     private final SecretsClient secretsClient;
 
     @Autowired
@@ -72,7 +75,7 @@ public final class MapboxClient {
         try {
             url = uri.toURL();
         } catch (MalformedURLException e) {
-            throw new MapboxException("Failed to convert Mapbox URI to URL", e);
+            throw new MapboxException("Failed to convert Mapbox URI to URL");
         }
 
         File tempFile;
@@ -84,7 +87,7 @@ public final class MapboxClient {
         }
 
         try {
-            FileUtils.copyURLToFile(url, tempFile);
+            FileUtils.copyURLToFile(url, tempFile, CONNECTION_TIMEOUT_MS, READ_TIMEOUT_MS);
         } catch (IOException e) {
             try {
                 Files.delete(tempFile.toPath());
@@ -92,7 +95,7 @@ public final class MapboxClient {
                 log.warn("Failed to delete temporary file", ex);
             }
 
-            throw new MapboxException("Failed to download Mapbox image to temporary file", e);
+            throw new MapboxException("Failed to download Mapbox image to temporary file");
         }
 
         tempFile.deleteOnExit();

@@ -91,6 +91,8 @@ public final class MastodonClient {
     }
 
     public Status postStatus(String text, @Nullable String mediaId) {
+        Objects.requireNonNull(text);
+
         String accessToken = this.secretsClient.getSecret()
                                                .mastodon()
                                                .accessToken();

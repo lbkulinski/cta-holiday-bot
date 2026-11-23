@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.1] - 2026-11-22
+
+### Changed
+
+- A failed Mapbox image no longer stops the post. `PostService` now logs the failure, reports it to Rollbar, and
+  continues with a text-only post.
+- A failed image upload no longer stops a post on any platform. The Twitter/X, Bluesky, and Mastodon publishers now log
+  the failure, report it to Rollbar, and publish a text-only post. If only the Twitter/X alt text fails, the tweet is
+  still posted with the image.
+- The Twitter/X publisher no longer falls back to a text-only tweet, or posts after a failed alt text call, when the
+  failure happened because the thread was interrupted. It rethrows instead, so no further request is made.
+- `TwitterClient` now reports "Failed to set alt text" instead of "Failed to set altText text" when the alt text
+  response cannot be parsed.
+- The Twitter/X `Media` response no longer requires `media_key`, which was never used. Only `id` is read.
+- `MastodonClient.postStatus` now rejects a `null` text up front, like the other client methods.
+- The README now notes which secrets are read per request and which are read once at startup.
+
+### Fixed
+
+- The Mapbox download now has a 5 second connect timeout and a 10 second read timeout. Previously a stalled connection
+  could block until the Lambda timeout.
+- `MapboxException` no longer keeps the underlying download error as its cause. For a non-2xx response the JDK includes
+  the full request URL in that error, and the URL contains the Mapbox access token, which could end up in the logs and
+  Rollbar.
+
 ## [2.0.0] - 2026-11-21
 
 ### Added
@@ -93,7 +118,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial release of bot.
 
-[Unreleased]: https://github.com/lbkulinski/cta-holiday-bot/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/lbkulinski/cta-holiday-bot/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/lbkulinski/cta-holiday-bot/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/lbkulinski/cta-holiday-bot/compare/v1.0.4...v2.0.0
 [1.0.4]: https://github.com/lbkulinski/cta-holiday-bot/compare/v1.0.3...v1.0.4
 [1.0.3]: https://github.com/lbkulinski/cta-holiday-bot/compare/v1.0.2...v1.0.3

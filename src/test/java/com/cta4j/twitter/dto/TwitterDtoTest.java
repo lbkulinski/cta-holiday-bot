@@ -45,8 +45,7 @@ class TwitterDtoTest {
     void responsesRejectNulls() {
         assertThatNullPointerException().isThrownBy(() -> new Tweet(null, "text"));
         assertThatNullPointerException().isThrownBy(() -> new Tweet("id", null));
-        assertThatNullPointerException().isThrownBy(() -> new Media(null, "key"));
-        assertThatNullPointerException().isThrownBy(() -> new Media("id", null));
+        assertThatNullPointerException().isThrownBy(() -> new Media(null));
         assertThatNullPointerException().isThrownBy(() -> new MediaMetadata(null));
         assertThatNullPointerException().isThrownBy(() -> new CreateTweetResponse(null));
         assertThatNullPointerException().isThrownBy(() -> new UploadMediaResponse(null));

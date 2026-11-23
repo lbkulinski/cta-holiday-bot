@@ -196,13 +196,24 @@ class TwitterClientTest {
 
         Media media = this.client.uploadMedia(file.toFile());
 
-        assertThat(media).isEqualTo(new Media("m1", "3_1"));
+        assertThat(media).isEqualTo(new Media("m1"));
         assertThat(capturedRequest().getUrl()).isEqualTo(UPLOAD_URL);
 
         JsonNode payload = capturedPayload();
 
         assertThat(payload.get("media").asString()).isEqualTo(Base64.getEncoder().encodeToString(bytes));
         assertThat(payload.get("media_category").asString()).isEqualTo("tweet_image");
+    }
+
+    @Test
+    void uploadMediaAcceptsResponseWithoutMediaKey(@TempDir Path dir) throws Exception {
+        givenResponseBody("""
+            {"data": {"id": "m1"}}
+            """);
+
+        Path file = Files.write(dir.resolve("map.png"), new byte[] {1});
+
+        assertThat(this.client.uploadMedia(file.toFile())).isEqualTo(new Media("m1"));
     }
 
     @Test
@@ -249,7 +260,7 @@ class TwitterClientTest {
 
         assertThatThrownBy(() -> this.client.setMediaAltText("m1", "alt"))
             .isInstanceOf(TwitterException.class)
-            .hasMessage("Failed to set altText text");
+            .hasMessage("Failed to set alt text");
     }
 
     @Test

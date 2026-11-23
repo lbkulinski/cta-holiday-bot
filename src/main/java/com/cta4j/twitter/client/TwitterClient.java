@@ -125,7 +125,7 @@ public final class TwitterClient {
         try {
             this.jsonMapper.readValue(body, CreateMediaMetadataResponse.class);
         } catch (JacksonException e) {
-            throw new TwitterException("Failed to set altText text", e);
+            throw new TwitterException("Failed to set alt text", e);
         }
     }
     

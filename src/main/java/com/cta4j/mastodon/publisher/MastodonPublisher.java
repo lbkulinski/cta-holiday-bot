@@ -3,7 +3,9 @@ package com.cta4j.mastodon.publisher;
 import com.cta4j.common.publisher.SocialPublisher;
 import com.cta4j.mastodon.client.MastodonClient;
 import com.cta4j.mastodon.dto.Status;
+import com.cta4j.mastodon.exception.MastodonException;
 import com.cta4j.post.model.Post;
+import com.rollbar.notifier.Rollbar;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +20,15 @@ public final class MastodonPublisher implements SocialPublisher {
     private static final String PLATFORM_NAME = "Mastodon";
 
     private final MastodonClient mastodonClient;
+    private final Rollbar rollbar;
 
     @Autowired
-    public MastodonPublisher(MastodonClient mastodonClient) {
+    public MastodonPublisher(
+        MastodonClient mastodonClient,
+        Rollbar rollbar
+    ) {
         this.mastodonClient = mastodonClient;
+        this.rollbar = rollbar;
     }
 
     @Override
@@ -41,7 +48,16 @@ public final class MastodonPublisher implements SocialPublisher {
             return;
         }
 
-        String mediaId = this.mastodonClient.uploadMedia(post.image().file(), post.image().altText()).id();
+        String mediaId = null;
+
+        try {
+            mediaId = this.mastodonClient.uploadMedia(post.image().file(), post.image().altText()).id();
+        } catch (MastodonException e) {
+            var message = "Failed to upload post media to Mastodon";
+
+            log.error(message, e);
+            this.rollbar.error(e, message);
+        }
 
         Status status = this.mastodonClient.postStatus(post.text(), mediaId);
 
